@@ -1,5 +1,7 @@
 # Flock
 
+![CI](https://github.com/jostho/quest/workflows/CI/badge.svg)
+
 This is a flag quiz program written in rust using [rocket](https://github.com/SergioBenitez/Rocket).
 
 ## Environment

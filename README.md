@@ -17,10 +17,10 @@ To build or run, use cargo
 
 ## Run
 
-Clone `country-flags` git repo from [here](https://github.com/hjnilsson/country-flags.git)
+Get `country-flags` sources from [here](https://github.com/hjnilsson/country-flags.git)
 
     git clone https://github.com/hjnilsson/country-flags.git
 
-Start flock - pass in location of `country-flags` directory
+Start flock - pass in the location of `country-flags` directory
 
     ./target/debug/flock -d ~/src/country-flags/

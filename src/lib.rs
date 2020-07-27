@@ -30,7 +30,7 @@ pub fn get_countries(flag_dir_path: &str) -> HashMap<String, String> {
     let mut path_buf = PathBuf::from(&flag_dir_path);
     path_buf.push(COUNTRIES_JSON);
     let result = read_from_json_file(path_buf.as_path());
-    result.unwrap()
+    filter_countries(result.unwrap())
 }
 
 fn read_from_json_file(path: &Path) -> Result<HashMap<String, String>, Box<dyn Error>> {
@@ -38,6 +38,17 @@ fn read_from_json_file(path: &Path) -> Result<HashMap<String, String>, Box<dyn E
     let buf_reader = BufReader::new(file);
     let countries = serde_json::from_reader(buf_reader)?;
     Ok(countries)
+}
+
+fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, String> {
+    // remove any non 2-char values - e.g. "GB-ENG"
+    countries.retain(|k, _| k.len() == 2);
+    // remove any regions OR territories with similar flags
+    let exclusion_list = vec!["AQ", "EU", "UM"];
+    for cca2 in exclusion_list {
+        countries.remove(cca2);
+    }
+    countries
 }
 
 pub fn get_random_country(

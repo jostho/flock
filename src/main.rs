@@ -51,7 +51,11 @@ fn main() {
 
     let countries = flock::get_countries(flag_dir_path);
 
-    println!("flag dir path: {}", flag_dir_path);
+    println!(
+        "Using flag dir: {} , countries: {}",
+        flag_dir_path,
+        countries.len()
+    );
     let config = Config {
         flag_dir_path: flag_dir_path.to_string(),
         countries,

@@ -4,8 +4,8 @@
 extern crate rocket;
 
 use clap::{App, Arg};
-use rocket::response::content;
 use rocket::State;
+use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 
 const ARG_DIR_PATH: &str = "dirpath";
@@ -21,15 +21,9 @@ fn list(config: State<Config>) -> String {
 }
 
 #[get("/quiz")]
-fn quiz(config: State<Config>) -> content::Html<String> {
+fn quiz(config: State<Config>) -> Template {
     let country = flock::get_random_country(&config.countries, &config.flag_dir_path);
-    let resp = format!(
-        "<html><body><h2>{} ({})</h2><img style='border:5px solid black' src='data:image/png;base64,{}'/></body></html>",
-        country["name"],
-        country["cca2"],
-        country["flag"]
-    );
-    content::Html(resp)
+    Template::render("quiz", &country)
 }
 
 fn main() {
@@ -63,6 +57,7 @@ fn main() {
 
     rocket::ignite()
         .mount("/", routes![list, quiz])
+        .attach(Template::fairing())
         .manage(config)
         .launch();
 }

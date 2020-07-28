@@ -11,6 +11,7 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4"
+rocket_contrib = { version = "0.4", default-features = false, features = ["handlebars_templates"] }
 clap = "2.33"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

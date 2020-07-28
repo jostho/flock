@@ -77,3 +77,42 @@ fn get_flag_base64_encoded(cca2: &str, flag_dir_path: &str) -> String {
     let result = std::fs::read(path_buf.as_path());
     base64::encode(result.unwrap())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_valid_dir_path_for_target() {
+        let result = is_valid_dir_path("target".to_string());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Dir path is not valid");
+    }
+
+    #[test]
+    fn filter_countries_for_gb_countries() {
+        let mut countries = HashMap::new();
+        countries.insert("GB-ENG".to_string(), "England".to_string());
+        countries.insert("GB-SCT".to_string(), "Scotland".to_string());
+        countries.insert("GB-WLS".to_string(), "Wales".to_string());
+        countries.insert("GB".to_string(), "United Kingdom".to_string());
+        let result = filter_countries(countries);
+        assert!(result.contains_key("GB"));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn filter_countries_for_excluded_countries() {
+        let mut countries = HashMap::new();
+        countries.insert("AD".to_string(), "Andorra".to_string());
+        countries.insert("AQ".to_string(), "Antarctica".to_string());
+        countries.insert("EU".to_string(), "Europe".to_string());
+        countries.insert("GB".to_string(), "United Kingdom".to_string());
+        countries.insert("UM".to_string(), "US Minor Outlying Islands".to_string());
+        countries.insert("ZW".to_string(), "Zimbabwe".to_string());
+        let result = filter_countries(countries);
+        assert!(result.contains_key("AD"));
+        assert!(!result.contains_key("AQ"));
+        assert_eq!(result.len(), 3);
+    }
+}

@@ -44,7 +44,9 @@ fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, S
     // remove any non 2-char values - e.g. "GB-ENG"
     countries.retain(|k, _| k.len() == 2);
     // remove any regions OR territories with similar flags
-    let exclusion_list = vec!["AQ", "EU", "UM"];
+    let exclusion_list = vec![
+        "AQ", "BQ", "BV", "EU", "GF", "GP", "HM", "PM", "RE", "SH", "SJ", "UM", "XK", "YT",
+    ];
     for cca2 in exclusion_list {
         countries.remove(cca2);
     }
@@ -108,7 +110,7 @@ mod tests {
         countries.insert("AQ".to_string(), "Antarctica".to_string());
         countries.insert("EU".to_string(), "Europe".to_string());
         countries.insert("GB".to_string(), "United Kingdom".to_string());
-        countries.insert("UM".to_string(), "US Minor Outlying Islands".to_string());
+        countries.insert("YT".to_string(), "Mayotte".to_string());
         countries.insert("ZW".to_string(), "Zimbabwe".to_string());
         let result = filter_countries(countries);
         assert!(result.contains_key("AD"));

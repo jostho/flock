@@ -23,8 +23,8 @@ jobs:
         toolchain: nightly
         override: true
         components: rustfmt
-    - name: Print cargo version
-      run: cargo --version
+    - name: Print version
+      run: rustc --version --verbose && cargo --version
     - name: Check fmt
       run: cargo fmt -- --check
     - name: Build

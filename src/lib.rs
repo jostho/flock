@@ -61,7 +61,8 @@ fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, S
     countries.retain(|k, _| k.len() == 2);
     // remove any regions OR territories with similar flags
     let exclusion_list = vec![
-        "AQ", "BQ", "BV", "EU", "GF", "GP", "HM", "PM", "RE", "SH", "SJ", "UM", "XK", "YT",
+        "AQ", "BQ", "BV", "EU", "GF", "GP", "HM", "LU", "MC", "PM", "RE", "SH", "SJ", "TD", "TF",
+        "UM", "VI", "XK", "YT",
     ];
     for cca2 in exclusion_list {
         countries.remove(cca2);

@@ -82,7 +82,8 @@ pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) ->
         .cloned()
         .collect();
     country_code_options.push(cca2.to_string());
-    let options = get_options(countries, country_code_options);
+    let mut options = get_options(countries, country_code_options);
+    options.shuffle(&mut rng);
     Question { country, options }
 }
 

@@ -1,4 +1,6 @@
+use rand::seq::SliceRandom;
 use rand::Rng;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -8,6 +10,20 @@ use std::path::{Path, PathBuf};
 const COUNTRIES_JSON: &str = "countries.json";
 const PNG_DIR: &str = "png250px";
 const PNG_EXTENSION: &str = "png";
+const NUMBER_OF_OPTIONS: u8 = 4;
+
+#[derive(Serialize, Debug)]
+pub struct Question {
+    country: Country,
+    options: Vec<Country>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct Country {
+    cca2: String,
+    name: String,
+    flag: String,
+}
 
 pub fn is_valid_dir_path(val: String) -> Result<(), String> {
     // check whether the directory is a copy of country-flags git repo
@@ -53,22 +69,45 @@ fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, S
     countries
 }
 
-pub fn get_random_country(
-    countries: &HashMap<String, String>,
-    flag_dir_path: &str,
-) -> HashMap<String, String> {
+pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) -> Question {
     let mut rng = rand::thread_rng();
     let country_codes: Vec<String> = countries.keys().cloned().collect();
     let index = rng.gen_range(0, country_codes.len());
     let cca2 = &country_codes[index];
     let name = &countries[cca2];
+    let country = get_country_with_flag(cca2, name, flag_dir_path);
+    let mut country_code_options: Vec<String> = country_codes
+        .choose_multiple(&mut rng, NUMBER_OF_OPTIONS as usize - 1)
+        .cloned()
+        .collect();
+    country_code_options.push(cca2.to_string());
+    let options = get_options(countries, country_code_options);
+    Question { country, options }
+}
+
+fn get_options(
+    countries: &HashMap<String, String>,
+    country_code_options: Vec<String>,
+) -> Vec<Country> {
+    let mut options = Vec::new();
+    for cca2 in country_code_options {
+        let country = Country {
+            cca2: cca2.to_string(),
+            name: countries[&cca2].to_string(),
+            flag: "".to_string(),
+        };
+        options.push(country);
+    }
+    options
+}
+
+fn get_country_with_flag(cca2: &str, name: &str, flag_dir_path: &str) -> Country {
     let flag_base64 = get_flag_base64_encoded(cca2, flag_dir_path);
-    let mut country = HashMap::new();
-    country.insert("cca2".to_string(), cca2.to_string());
-    country.insert("name".to_string(), name.to_string());
-    country.insert("flag".to_string(), flag_base64);
-    //println!("country: {:?}", country);
-    country
+    Country {
+        cca2: cca2.to_string(),
+        name: name.to_string(),
+        flag: flag_base64,
+    }
 }
 
 fn get_flag_base64_encoded(cca2: &str, flag_dir_path: &str) -> String {

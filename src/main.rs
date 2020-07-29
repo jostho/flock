@@ -22,8 +22,8 @@ fn list(config: State<Config>) -> String {
 
 #[get("/quiz")]
 fn quiz(config: State<Config>) -> Template {
-    let country = flock::get_random_country(&config.countries, &config.flag_dir_path);
-    Template::render("quiz", &country)
+    let question = flock::get_question(&config.countries, &config.flag_dir_path);
+    Template::render("quiz", &question)
 }
 
 fn main() {

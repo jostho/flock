@@ -4,7 +4,13 @@
     <title>Flock - quiz</title>
   </head>
   <body>
-    <h2> {{ name }} ({{ cca2 }})</h2>
-    <img style="border:5px solid black" src="data:image/png;base64,{{ flag }}"/>
+    <h3>The below flag belongs to which country/territory ?</h3>
+    <img style="border:5px solid black" src="data:image/png;base64,{{ country.flag }}"/>
+    <h4>Options</h4>
+    <ul>
+      {{#each options}}
+        <li>{{ this.name }} ({{ this.cca2 }})</li>
+      {{/each}}
+    </ul>
   </body>
 </html>

@@ -8,7 +8,7 @@ This is a flag quiz program written in rust using [rocket](https://github.com/Se
 
 * fedora 32
 * rustup 1.22
-* rust 1.46.0-nightly
+* rust 1.47.0-nightly
 
 ## Build
 
@@ -23,6 +23,8 @@ Get `country-flags` sources from [here](https://github.com/hjnilsson/country-fla
 
     git clone https://github.com/hjnilsson/country-flags.git
 
-Start flock - pass in the location of `country-flags` directory
+Start the binary - pass in the location of `country-flags` directory
 
     ./target/debug/flock -d ~/src/country-flags/
+
+Open a browser - and access the application at `http://localhost:8000/quiz`

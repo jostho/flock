@@ -72,11 +72,12 @@ fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, S
 
 pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) -> Question {
     let mut rng = rand::thread_rng();
-    let country_codes: Vec<String> = countries.keys().cloned().collect();
+    let mut country_codes: Vec<String> = countries.keys().cloned().collect();
     let index = rng.gen_range(0, country_codes.len());
-    let cca2 = &country_codes[index];
+    let cca2 = &country_codes[index].to_string();
     let name = &countries[cca2];
     let country = get_country_with_flag(cca2, name, flag_dir_path);
+    country_codes.remove(index);
     let mut country_code_options: Vec<String> = country_codes
         .choose_multiple(&mut rng, NUMBER_OF_OPTIONS as usize - 1)
         .cloned()

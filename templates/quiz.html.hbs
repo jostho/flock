@@ -1,16 +1,32 @@
 <!doctype html>
 <html>
   <head>
+    <script type="text/javascript">
+       function toggle_visibility(id) {
+           var e = document.getElementById(id);
+           if(e.style.display == 'block')
+              e.style.display = 'none';
+           else
+              e.style.display = 'block';
+       }
+    </script>
     <title>Flock - quiz</title>
   </head>
   <body>
     <h3>The below flag belongs to which country/territory ?</h3>
     <img style="border:5px solid black" src="data:image/png;base64,{{ country.flag }}"/>
     <h4>Options</h4>
-    <ul>
+    <ol>
       {{#each options}}
         <li>{{ this.name }} ({{ this.cca2 }})</li>
       {{/each}}
-    </ul>
+    </ol>
+    <button onclick="toggle_visibility('answer');">Show answer</button>
+    <div id="answer" style="display:none">
+      <p>The answer is <b>{{ country.name }} ({{ country.cca2 }})</b></p>
+    </div>
+    <div id="next">
+      <p><a href="javascript:window.location.reload(true)">Next</a></p>
+    </div>
   </body>
 </html>

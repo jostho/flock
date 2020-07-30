@@ -16,6 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Checkout country-flags repo
+      uses: actions/checkout@v2
+      with:
+        repository: hjnilsson/country-flags
+        path: target/country-flags
     - name: Install nightly
       uses: actions-rs/toolchain@v1
       with:
@@ -23,6 +28,8 @@ jobs:
         toolchain: nightly
         override: true
         components: rustfmt
+    - name: List country-flags repo
+      run: ls -l target && ls -l target/country-flags
     - name: Print version
       run: rustc --version --verbose && cargo --version
     - name: Check fmt

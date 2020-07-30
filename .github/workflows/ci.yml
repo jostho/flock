@@ -28,8 +28,6 @@ jobs:
         toolchain: nightly
         override: true
         components: rustfmt
-    - name: List country-flags repo
-      run: ls -l target && ls -l target/country-flags
     - name: Print version
       run: rustc --version --verbose && cargo --version
     - name: Check fmt
@@ -38,3 +36,5 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test
+    - name: Run ignored tests
+      run: cargo test -- --ignored

@@ -18,7 +18,7 @@ pub struct Question {
     options: Vec<Country>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Country {
     cca2: String,
     name: String,
@@ -83,8 +83,7 @@ pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) ->
         .cloned()
         .collect();
     country_code_options.push(cca2.to_string());
-    let mut options = get_options(countries, country_code_options);
-    options.shuffle(&mut rng);
+    let options = get_options(countries, country_code_options);
     Question { country, options }
 }
 
@@ -101,6 +100,7 @@ fn get_options(
         };
         options.push(country);
     }
+    options.sort();
     options
 }
 

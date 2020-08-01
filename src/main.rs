@@ -15,6 +15,16 @@ struct Config {
     countries: HashMap<String, String>,
 }
 
+#[get("/healthcheck")]
+fn healthcheck() -> &'static str {
+    "Ok"
+}
+
+#[get("/version")]
+fn version() -> &'static str {
+    clap::crate_version!()
+}
+
 #[get("/list")]
 fn list(config: State<Config>) -> String {
     format!("{:?}", config.countries.keys())
@@ -56,7 +66,7 @@ fn main() {
     };
 
     rocket::ignite()
-        .mount("/", routes![list, quiz])
+        .mount("/", routes![healthcheck, version, list, quiz])
         .attach(Template::fairing())
         .manage(config)
         .launch();

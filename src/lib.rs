@@ -159,4 +159,22 @@ mod tests {
         assert!(!result.contains_key("AQ"));
         assert_eq!(result.len(), 3);
     }
+
+    #[test]
+    fn get_options_order_by_cca2() {
+        let mut countries = HashMap::new();
+        // insert countries in name order
+        countries.insert("AD".to_string(), "Andorra".to_string());
+        countries.insert("DE".to_string(), "Germany".to_string());
+        countries.insert("CH".to_string(), "Switzerland".to_string());
+        countries.insert("AE".to_string(), "United Arab Emirates".to_string());
+        let country_codes: Vec<String> = countries.keys().cloned().collect();
+        let options = get_options(&countries, country_codes);
+        assert_eq!(options.len(), 4);
+        // verify options in cca2 order
+        assert_eq!(options[0].cca2, "AD");
+        assert_eq!(options[1].cca2, "AE");
+        assert_eq!(options[2].cca2, "CH");
+        assert_eq!(options[3].cca2, "DE");
+    }
 }

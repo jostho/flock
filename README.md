@@ -27,4 +27,4 @@ Start the binary - pass in the location of `country-flags` directory
 
     ./target/debug/flock -d ~/src/country-flags/
 
-Open a browser - and access the application at `http://localhost:8000/quiz`
+Open a browser - and access the application at `http://localhost:8000/`

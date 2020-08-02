@@ -4,6 +4,7 @@
 extern crate rocket;
 
 use clap::{App, Arg};
+use rocket::response::Redirect;
 use rocket::State;
 use rocket_contrib::templates::Template;
 use std::collections::HashMap;
@@ -13,6 +14,11 @@ const ARG_DIR_PATH: &str = "dirpath";
 struct Config {
     flag_dir_path: String,
     countries: HashMap<String, String>,
+}
+
+#[get("/")]
+fn index() -> Redirect {
+    Redirect::to("/quiz")
 }
 
 #[get("/healthcheck")]
@@ -66,7 +72,7 @@ fn main() {
     };
 
     rocket::ignite()
-        .mount("/", routes![healthcheck, version, list, quiz])
+        .mount("/", routes![index, healthcheck, version, list, quiz])
         .attach(Template::fairing())
         .manage(config)
         .launch();

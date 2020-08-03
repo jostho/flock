@@ -9,7 +9,7 @@ use rocket::State;
 use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 
-const ARG_DIR_PATH: &str = "dirpath";
+const ARG_DIR_PATH: &str = "dir-path";
 
 struct Config {
     flag_dir_path: String,

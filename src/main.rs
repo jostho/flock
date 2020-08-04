@@ -5,7 +5,7 @@ extern crate rocket;
 
 use clap::{App, Arg};
 use rocket::response::Redirect;
-use rocket::State;
+use rocket::{Rocket, State};
 use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 
@@ -42,6 +42,13 @@ fn quiz(config: State<Config>) -> Template {
     Template::render("quiz", &question)
 }
 
+fn rocket(config: Config) -> Rocket {
+    rocket::ignite()
+        .mount("/", routes![index, healthcheck, version, list, quiz])
+        .attach(Template::fairing())
+        .manage(config)
+}
+
 fn main() {
     let args = App::new(clap::crate_name!())
         .about(clap::crate_description!())
@@ -71,9 +78,44 @@ fn main() {
         countries,
     };
 
-    rocket::ignite()
-        .mount("/", routes![index, healthcheck, version, list, quiz])
-        .attach(Template::fairing())
-        .manage(config)
-        .launch();
+    rocket(config).launch();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rocket::http::Status;
+    use rocket::local::Client;
+
+    const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
+
+    #[test]
+    fn get_healthcheck() {
+        let client = Client::new(rocket(dummy_config())).unwrap();
+        let mut response = client.get("/healthcheck").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some("Ok".into()));
+    }
+
+    #[test]
+    fn get_version() {
+        let client = Client::new(rocket(dummy_config())).unwrap();
+        let mut response = client.get("/version").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some(clap::crate_version!().into()));
+    }
+
+    fn dummy_config() -> Config {
+        let mut countries = HashMap::new();
+        countries.insert("AD".to_string(), "Andorra".to_string());
+        countries.insert("AE".to_string(), "United Arab Emirates".to_string());
+        countries.insert("AF".to_string(), "Afghanistan".to_string());
+        countries.insert("ZA".to_string(), "South Africa".to_string());
+        countries.insert("ZM".to_string(), "Zambia".to_string());
+        countries.insert("ZW".to_string(), "Zimbabwe".to_string());
+        Config {
+            flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
+            countries,
+        }
+    }
 }

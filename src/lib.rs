@@ -70,6 +70,12 @@ fn filter_countries(mut countries: HashMap<String, String>) -> HashMap<String, S
     countries
 }
 
+pub fn get_country_codes(countries: &HashMap<String, String>) -> Vec<String> {
+    let mut country_codes: Vec<String> = countries.keys().cloned().collect();
+    country_codes.sort();
+    country_codes
+}
+
 pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) -> Question {
     let mut rng = rand::thread_rng();
     let mut country_codes: Vec<String> = countries.keys().cloned().collect();
@@ -161,20 +167,37 @@ mod tests {
     }
 
     #[test]
-    fn get_options_order_by_cca2() {
+    fn get_country_codes_in_sorted_order() {
+        let countries = dummy_countries();
+        let result = get_country_codes(&countries);
+        assert_eq!(result.len(), 4);
+        // verify country_codes in sorted order
+        assert_eq!(result[0], "AD");
+        assert_eq!(result[1], "AE");
+        assert_eq!(result[2], "CH");
+        assert_eq!(result[3], "DE");
+    }
+
+    #[test]
+    fn get_options_in_sorted_order() {
+        let countries = dummy_countries();
+        let country_codes: Vec<String> = countries.keys().cloned().collect();
+        let result = get_options(&countries, country_codes);
+        assert_eq!(result.len(), 4);
+        // verify options in cca2 order
+        assert_eq!(result[0].cca2, "AD");
+        assert_eq!(result[1].cca2, "AE");
+        assert_eq!(result[2].cca2, "CH");
+        assert_eq!(result[3].cca2, "DE");
+    }
+
+    fn dummy_countries() -> HashMap<String, String> {
         let mut countries = HashMap::new();
         // insert countries in name order
         countries.insert("AD".to_string(), "Andorra".to_string());
         countries.insert("DE".to_string(), "Germany".to_string());
         countries.insert("CH".to_string(), "Switzerland".to_string());
         countries.insert("AE".to_string(), "United Arab Emirates".to_string());
-        let country_codes: Vec<String> = countries.keys().cloned().collect();
-        let options = get_options(&countries, country_codes);
-        assert_eq!(options.len(), 4);
-        // verify options in cca2 order
-        assert_eq!(options[0].cca2, "AD");
-        assert_eq!(options[1].cca2, "AE");
-        assert_eq!(options[2].cca2, "CH");
-        assert_eq!(options[3].cca2, "DE");
+        countries
     }
 }

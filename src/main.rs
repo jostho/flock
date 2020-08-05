@@ -33,7 +33,7 @@ fn version() -> &'static str {
 
 #[get("/list")]
 fn list(config: State<Config>) -> String {
-    format!("{:?}", config.countries.keys())
+    format!("{:?}", flock::get_country_codes(&config.countries))
 }
 
 #[get("/quiz")]

@@ -90,6 +90,14 @@ mod tests {
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]
+    fn get_index() {
+        let client = Client::new(rocket(dummy_config())).unwrap();
+        let response = client.get("/").dispatch();
+        assert_eq!(response.status(), Status::SeeOther);
+        assert_eq!(response.headers().get_one("Location"), Some("/quiz"));
+    }
+
+    #[test]
     fn get_healthcheck() {
         let client = Client::new(rocket(dummy_config())).unwrap();
         let mut response = client.get("/healthcheck").dispatch();
@@ -103,6 +111,18 @@ mod tests {
         let mut response = client.get("/version").dispatch();
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(response.body_string(), Some(clap::crate_version!().into()));
+    }
+
+    #[test]
+    fn get_list() {
+        let client = Client::new(rocket(dummy_config())).unwrap();
+        let mut response = client.get("/list").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let country_codes = ["AD", "AE", "AF", "ZA", "ZM", "ZW"];
+        assert_eq!(
+            response.body_string(),
+            Some(format!("{:?}", country_codes).into())
+        );
     }
 
     fn dummy_config() -> Config {

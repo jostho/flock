@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 const ARG_DIR_PATH: &str = "dir-path";
 
-struct Config {
+struct AppConfig {
     flag_dir_path: String,
     countries: HashMap<String, String>,
 }
@@ -32,17 +32,17 @@ fn version() -> &'static str {
 }
 
 #[get("/list")]
-fn list(config: State<Config>) -> String {
+fn list(config: State<AppConfig>) -> String {
     format!("{:?}", flock::get_country_codes(&config.countries))
 }
 
 #[get("/quiz")]
-fn quiz(config: State<Config>) -> Template {
+fn quiz(config: State<AppConfig>) -> Template {
     let question = flock::get_question(&config.countries, &config.flag_dir_path);
     Template::render("quiz", &question)
 }
 
-fn rocket(config: Config) -> Rocket {
+fn rocket(config: AppConfig) -> Rocket {
     rocket::ignite()
         .mount("/", routes![index, healthcheck, version, list, quiz])
         .attach(Template::fairing())
@@ -73,7 +73,7 @@ fn main() {
         flag_dir_path,
         countries.len()
     );
-    let config = Config {
+    let config = AppConfig {
         flag_dir_path: flag_dir_path.to_string(),
         countries,
     };
@@ -125,7 +125,7 @@ mod tests {
         );
     }
 
-    fn dummy_config() -> Config {
+    fn dummy_config() -> AppConfig {
         let mut countries = HashMap::new();
         countries.insert("AD".to_string(), "Andorra".to_string());
         countries.insert("AE".to_string(), "United Arab Emirates".to_string());
@@ -133,7 +133,7 @@ mod tests {
         countries.insert("ZA".to_string(), "South Africa".to_string());
         countries.insert("ZM".to_string(), "Zambia".to_string());
         countries.insert("ZW".to_string(), "Zimbabwe".to_string());
-        Config {
+        AppConfig {
             flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
             countries,
         }

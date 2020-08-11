@@ -7,6 +7,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
+const MAX_PORT: u16 = 32768;
 const COUNTRIES_JSON: &str = "countries.json";
 const PNG_DIR: &str = "png250px";
 const PNG_EXTENSION: &str = "png";
@@ -38,6 +39,19 @@ pub fn is_valid_dir_path(val: String) -> Result<(), String> {
         Ok(())
     } else {
         Err("Dir path is not valid".to_string())
+    }
+}
+
+pub fn is_valid_port(val: String) -> Result<(), String> {
+    let port: u16 = match val.parse() {
+        Ok(port) => port,
+        Err(e) => return Err(e.to_string()),
+    };
+
+    if port < MAX_PORT {
+        Ok(())
+    } else {
+        Err(format!("value should be less than {}", MAX_PORT))
     }
 }
 

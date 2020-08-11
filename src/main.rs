@@ -4,14 +4,17 @@
 extern crate rocket;
 
 use clap::{App, Arg};
+use rocket::config::{Config, Environment};
 use rocket::response::Redirect;
 use rocket::{Rocket, State};
 use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 
+const ARG_PORT: &str = "port";
 const ARG_DIR_PATH: &str = "dir-path";
 
 struct AppConfig {
+    port: u16,
     flag_dir_path: String,
     countries: HashMap<String, String>,
 }
@@ -42,17 +45,27 @@ fn quiz(config: State<AppConfig>) -> Template {
     Template::render("quiz", &question)
 }
 
-fn rocket(config: AppConfig) -> Rocket {
-    rocket::ignite()
+fn rocket(app_config: AppConfig) -> Rocket {
+    let rocket_config = Config::build(Environment::Staging)
+        .port(app_config.port)
+        .unwrap();
+    rocket::custom(rocket_config)
         .mount("/", routes![index, healthcheck, version, list, quiz])
         .attach(Template::fairing())
-        .manage(config)
+        .manage(app_config)
 }
 
 fn main() {
     let args = App::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
+        .arg(
+            Arg::with_name(ARG_PORT)
+                .long(ARG_PORT)
+                .help("Port number to use")
+                .default_value("8000")
+                .validator(flock::is_valid_port),
+        )
         .arg(
             Arg::with_name(ARG_DIR_PATH)
                 .short("d")
@@ -64,8 +77,11 @@ fn main() {
         )
         .get_matches();
 
-    let flag_dir_path = args.value_of(ARG_DIR_PATH).unwrap();
+    // decide port
+    let port = args.value_of(ARG_PORT).unwrap();
+    let port: u16 = port.parse().unwrap();
 
+    let flag_dir_path = args.value_of(ARG_DIR_PATH).unwrap();
     let countries = flock::get_countries(flag_dir_path);
 
     println!(
@@ -74,6 +90,7 @@ fn main() {
         countries.len()
     );
     let config = AppConfig {
+        port,
         flag_dir_path: flag_dir_path.to_string(),
         countries,
     };
@@ -87,6 +104,7 @@ mod tests {
     use rocket::http::Status;
     use rocket::local::Client;
 
+    const APP_PORT: u16 = 8000;
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]
@@ -134,6 +152,7 @@ mod tests {
         countries.insert("ZM".to_string(), "Zambia".to_string());
         countries.insert("ZW".to_string(), "Zimbabwe".to_string());
         AppConfig {
+            port: APP_PORT,
             flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
             countries,
         }

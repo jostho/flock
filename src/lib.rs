@@ -154,6 +154,30 @@ mod tests {
     }
 
     #[test]
+    fn is_valid_port_for_string() {
+        let result = is_valid_port("str".to_string());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "invalid digit found in string");
+    }
+
+    #[test]
+    fn is_valid_port_for_8000() {
+        let result = is_valid_port("8000".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), ());
+    }
+
+    #[test]
+    fn is_valid_port_for_max_port() {
+        let result = is_valid_port(MAX_PORT.to_string());
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            format!("value should be less than {}", MAX_PORT)
+        );
+    }
+
+    #[test]
     fn filter_countries_for_gb_countries() {
         let mut countries = HashMap::new();
         countries.insert("GB-ENG".to_string(), "England".to_string());

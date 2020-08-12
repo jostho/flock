@@ -14,6 +14,7 @@ const ARG_PORT: &str = "port";
 const ARG_LOCAL: &str = "local";
 const ARG_DIR_PATH: &str = "dir-path";
 
+const DEFAULT_PORT: u16 = 8000;
 const BIND_ALL: &str = "0.0.0.0";
 const BIND_LOCALHOST: &str = "127.0.0.1";
 
@@ -127,6 +128,14 @@ mod tests {
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]
+    fn rocket_for_dummy_config() {
+        let rocket = rocket(dummy_config());
+        assert_eq!(rocket.config().environment, Environment::Staging);
+        assert_eq!(rocket.config().address, BIND_ALL);
+        assert_eq!(rocket.config().port, DEFAULT_PORT);
+    }
+
+    #[test]
     fn get_index() {
         let client = Client::new(rocket(dummy_config())).unwrap();
         let response = client.get("/").dispatch();
@@ -172,7 +181,7 @@ mod tests {
         countries.insert("ZW".to_string(), "Zimbabwe".to_string());
         AppConfig {
             local: false,
-            port: 8000,
+            port: DEFAULT_PORT,
             flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
             countries,
         }

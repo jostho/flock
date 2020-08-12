@@ -11,9 +11,14 @@ use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 
 const ARG_PORT: &str = "port";
+const ARG_LOCAL: &str = "local";
 const ARG_DIR_PATH: &str = "dir-path";
 
+const BIND_ALL: &str = "0.0.0.0";
+const BIND_LOCALHOST: &str = "127.0.0.1";
+
 struct AppConfig {
+    local: bool,
     port: u16,
     flag_dir_path: String,
     countries: HashMap<String, String>,
@@ -46,7 +51,14 @@ fn quiz(config: State<AppConfig>) -> Template {
 }
 
 fn rocket(app_config: AppConfig) -> Rocket {
+    // decide bind interface
+    let address = if app_config.local {
+        BIND_LOCALHOST
+    } else {
+        BIND_ALL // default
+    };
     let rocket_config = Config::build(Environment::Staging)
+        .address(address)
         .port(app_config.port)
         .unwrap();
     rocket::custom(rocket_config)
@@ -67,6 +79,12 @@ fn main() {
                 .validator(flock::is_valid_port),
         )
         .arg(
+            Arg::with_name(ARG_LOCAL)
+                .long(ARG_LOCAL)
+                .help("Bind on local interface")
+                .takes_value(false),
+        )
+        .arg(
             Arg::with_name(ARG_DIR_PATH)
                 .short("d")
                 .long(ARG_DIR_PATH)
@@ -77,9 +95,10 @@ fn main() {
         )
         .get_matches();
 
-    // decide port
+    // bind details
     let port = args.value_of(ARG_PORT).unwrap();
     let port: u16 = port.parse().unwrap();
+    let local = args.is_present(ARG_LOCAL);
 
     let flag_dir_path = args.value_of(ARG_DIR_PATH).unwrap();
     let countries = flock::get_countries(flag_dir_path);
@@ -90,6 +109,7 @@ fn main() {
         countries.len()
     );
     let config = AppConfig {
+        local,
         port,
         flag_dir_path: flag_dir_path.to_string(),
         countries,
@@ -104,7 +124,6 @@ mod tests {
     use rocket::http::Status;
     use rocket::local::Client;
 
-    const APP_PORT: u16 = 8000;
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]
@@ -152,7 +171,8 @@ mod tests {
         countries.insert("ZM".to_string(), "Zambia".to_string());
         countries.insert("ZW".to_string(), "Zimbabwe".to_string());
         AppConfig {
-            port: APP_PORT,
+            local: false,
+            port: 8000,
             flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
             countries,
         }

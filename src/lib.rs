@@ -36,9 +36,14 @@ pub fn is_valid_dir_path(val: String) -> Result<(), String> {
         && json_path_buf.as_path().is_file()
         && png_dir_path_buf.as_path().is_dir()
     {
-        Ok(())
+        let result = read_from_json_file(json_path_buf.as_path());
+        if result.is_ok() {
+            Ok(())
+        } else {
+            Err("json file is not valid".to_string())
+        }
     } else {
-        Err("Dir path is not valid".to_string())
+        Err("directory path is not valid".to_string())
     }
 }
 
@@ -150,7 +155,7 @@ mod tests {
     fn is_valid_dir_path_for_target() {
         let result = is_valid_dir_path("target".to_string());
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Dir path is not valid");
+        assert_eq!(result.unwrap_err(), "directory path is not valid");
     }
 
     #[test]

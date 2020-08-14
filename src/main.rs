@@ -13,6 +13,7 @@ use std::collections::HashMap;
 const ARG_PORT: &str = "port";
 const ARG_LOCAL: &str = "local";
 const ARG_FLAG_DIR: &str = "flag-dir";
+const ENV_FLAG_DIR: &str = "FLOCK_FLAG_DIR";
 
 const DEFAULT_PORT: u16 = 8000;
 const BIND_ALL: &str = "0.0.0.0";
@@ -89,6 +90,7 @@ fn main() {
             Arg::with_name(ARG_FLAG_DIR)
                 .short("d")
                 .long(ARG_FLAG_DIR)
+                .env(ENV_FLAG_DIR)
                 .help("Flag dir")
                 .takes_value(true)
                 .validator(flock::is_valid_dir_path)

@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 const ARG_PORT: &str = "port";
 const ARG_LOCAL: &str = "local";
-const ARG_DIR_PATH: &str = "dir-path";
+const ARG_FLAG_DIR: &str = "flag-dir";
 
 const DEFAULT_PORT: u16 = 8000;
 const BIND_ALL: &str = "0.0.0.0";
@@ -21,7 +21,7 @@ const BIND_LOCALHOST: &str = "127.0.0.1";
 struct AppConfig {
     local: bool,
     port: u16,
-    flag_dir_path: String,
+    flag_dir: String,
     countries: HashMap<String, String>,
 }
 
@@ -47,7 +47,7 @@ fn list(config: State<AppConfig>) -> String {
 
 #[get("/quiz")]
 fn quiz(config: State<AppConfig>) -> Template {
-    let question = flock::get_question(&config.countries, &config.flag_dir_path);
+    let question = flock::get_question(&config.countries, &config.flag_dir);
     Template::render("quiz", &question)
 }
 
@@ -86,10 +86,10 @@ fn main() {
                 .takes_value(false),
         )
         .arg(
-            Arg::with_name(ARG_DIR_PATH)
+            Arg::with_name(ARG_FLAG_DIR)
                 .short("d")
-                .long(ARG_DIR_PATH)
-                .help("Flag dir path")
+                .long(ARG_FLAG_DIR)
+                .help("Flag dir")
                 .takes_value(true)
                 .validator(flock::is_valid_dir_path)
                 .required(true),
@@ -101,18 +101,18 @@ fn main() {
     let port: u16 = port.parse().unwrap();
     let local = args.is_present(ARG_LOCAL);
 
-    let flag_dir_path = args.value_of(ARG_DIR_PATH).unwrap();
-    let countries = flock::get_countries(flag_dir_path);
+    let flag_dir = args.value_of(ARG_FLAG_DIR).unwrap();
+    let countries = flock::get_countries(flag_dir);
 
     println!(
         "Using flag dir: {} , countries: {}",
-        flag_dir_path,
+        flag_dir,
         countries.len()
     );
     let config = AppConfig {
         local,
         port,
-        flag_dir_path: flag_dir_path.to_string(),
+        flag_dir: flag_dir.to_string(),
         countries,
     };
 
@@ -182,7 +182,7 @@ mod tests {
         AppConfig {
             local: false,
             port: DEFAULT_PORT,
-            flag_dir_path: COUNTRY_FLAGS_DIR.to_string(),
+            flag_dir: COUNTRY_FLAGS_DIR.to_string(),
             countries,
         }
     }

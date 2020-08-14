@@ -63,9 +63,9 @@ pub fn is_valid_port(val: String) -> Result<(), String> {
     }
 }
 
-pub fn get_countries(flag_dir_path: &str) -> HashMap<String, String> {
+pub fn get_countries(flag_dir: &str) -> HashMap<String, String> {
     // read countries.json
-    let mut path_buf = PathBuf::from(&flag_dir_path);
+    let mut path_buf = PathBuf::from(&flag_dir);
     path_buf.push(COUNTRIES_JSON);
     let result = read_from_json_file(path_buf.as_path());
     filter_countries(result.unwrap())
@@ -98,13 +98,13 @@ pub fn get_country_codes(countries: &HashMap<String, String>) -> Vec<String> {
     country_codes
 }
 
-pub fn get_question(countries: &HashMap<String, String>, flag_dir_path: &str) -> Question {
+pub fn get_question(countries: &HashMap<String, String>, flag_dir: &str) -> Question {
     let mut rng = rand::thread_rng();
     let mut country_codes: Vec<String> = countries.keys().cloned().collect();
     let index = rng.gen_range(0, country_codes.len());
     let cca2 = &country_codes[index].to_string();
     let name = &countries[cca2];
-    let country = get_country_with_flag(cca2, name, flag_dir_path);
+    let country = get_country_with_flag(cca2, name, flag_dir);
     country_codes.remove(index);
     let mut country_code_options: Vec<String> = country_codes
         .choose_multiple(&mut rng, NUMBER_OF_OPTIONS as usize - 1)
@@ -132,8 +132,8 @@ fn get_options(
     options
 }
 
-fn get_country_with_flag(cca2: &str, name: &str, flag_dir_path: &str) -> Country {
-    let flag_base64 = get_flag_base64_encoded(cca2, flag_dir_path);
+fn get_country_with_flag(cca2: &str, name: &str, flag_dir: &str) -> Country {
+    let flag_base64 = get_flag_base64_encoded(cca2, flag_dir);
     Country {
         cca2: cca2.to_string(),
         name: name.to_string(),
@@ -141,8 +141,8 @@ fn get_country_with_flag(cca2: &str, name: &str, flag_dir_path: &str) -> Country
     }
 }
 
-fn get_flag_base64_encoded(cca2: &str, flag_dir_path: &str) -> String {
-    let mut path_buf = PathBuf::from(&flag_dir_path);
+fn get_flag_base64_encoded(cca2: &str, flag_dir: &str) -> String {
+    let mut path_buf = PathBuf::from(&flag_dir);
     path_buf.push(PNG_DIR);
     path_buf.push(cca2.to_ascii_lowercase());
     path_buf.set_extension(PNG_EXTENSION);

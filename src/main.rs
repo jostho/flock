@@ -107,7 +107,8 @@ fn main() {
                 .long(ARG_TEMPLATE_DIR)
                 .env(ENV_TEMPLATE_DIR)
                 .help("Template dir")
-                .default_value(DEFAULT_TEMPLATE_DIR),
+                .default_value(DEFAULT_TEMPLATE_DIR)
+                .validator(flock::is_valid_template_dir),
         )
         .get_matches();
 

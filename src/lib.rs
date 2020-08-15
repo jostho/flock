@@ -12,6 +12,7 @@ const COUNTRIES_JSON: &str = "countries.json";
 const PNG_DIR: &str = "png250px";
 const PNG_EXTENSION: &str = "png";
 const NUMBER_OF_OPTIONS: u8 = 4;
+const QUIZ_HBS: &str = "quiz.html.hbs";
 
 #[derive(Serialize, Debug)]
 pub struct Question {
@@ -45,6 +46,16 @@ pub fn is_valid_flag_dir(val: String) -> Result<(), String> {
                 json_path_buf.as_path().to_str().unwrap()
             ))
         }
+    } else {
+        Err(format!("{} is not valid", &val))
+    }
+}
+
+pub fn is_valid_template_dir(val: String) -> Result<(), String> {
+    let mut hbs_path_buf = PathBuf::from(&val);
+    hbs_path_buf.push(QUIZ_HBS);
+    if Path::new(&val).is_dir() && hbs_path_buf.as_path().is_file() {
+        Ok(())
     } else {
         Err(format!("{} is not valid", &val))
     }
@@ -159,6 +170,13 @@ mod tests {
         let result = is_valid_flag_dir("target".to_string());
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), "target is not valid");
+    }
+
+    #[test]
+    fn is_valid_template_dir_for_templates() {
+        let result = is_valid_template_dir("templates".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), ());
     }
 
     #[test]

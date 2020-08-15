@@ -19,10 +19,15 @@ const DEFAULT_PORT: u16 = 8000;
 const BIND_ALL: &str = "0.0.0.0";
 const BIND_LOCALHOST: &str = "127.0.0.1";
 
+const ARG_TEMPLATE_DIR: &str = "template-dir";
+const ENV_TEMPLATE_DIR: &str = "FLOCK_TEMPLATE_DIR";
+const DEFAULT_TEMPLATE_DIR: &str = "templates";
+
 struct AppConfig {
     local: bool,
     port: u16,
     flag_dir: String,
+    template_dir: String,
     countries: HashMap<String, String>,
 }
 
@@ -62,6 +67,7 @@ fn rocket(app_config: AppConfig) -> Rocket {
     let rocket_config = Config::build(Environment::Staging)
         .address(address)
         .port(app_config.port)
+        .extra("template_dir", app_config.template_dir.to_string())
         .unwrap();
     rocket::custom(rocket_config)
         .mount("/", routes![index, healthcheck, version, list, quiz])
@@ -96,6 +102,13 @@ fn main() {
                 .validator(flock::is_valid_dir_path)
                 .required(true),
         )
+        .arg(
+            Arg::with_name(ARG_TEMPLATE_DIR)
+                .long(ARG_TEMPLATE_DIR)
+                .env(ENV_TEMPLATE_DIR)
+                .help("Template dir")
+                .default_value(DEFAULT_TEMPLATE_DIR),
+        )
         .get_matches();
 
     // bind details
@@ -104,6 +117,7 @@ fn main() {
     let local = args.is_present(ARG_LOCAL);
 
     let flag_dir = args.value_of(ARG_FLAG_DIR).unwrap();
+    let template_dir = args.value_of(ARG_TEMPLATE_DIR).unwrap();
     let countries = flock::get_countries(flag_dir);
 
     println!(
@@ -115,6 +129,7 @@ fn main() {
         local,
         port,
         flag_dir: flag_dir.to_string(),
+        template_dir: template_dir.to_string(),
         countries,
     };
 
@@ -185,6 +200,7 @@ mod tests {
             local: false,
             port: DEFAULT_PORT,
             flag_dir: COUNTRY_FLAGS_DIR.to_string(),
+            template_dir: DEFAULT_TEMPLATE_DIR.to_string(),
             countries,
         }
     }

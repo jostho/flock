@@ -99,7 +99,7 @@ fn main() {
                 .env(ENV_FLAG_DIR)
                 .help("Flag dir")
                 .takes_value(true)
-                .validator(flock::is_valid_dir_path)
+                .validator(flock::is_valid_flag_dir)
                 .required(true),
         )
         .arg(

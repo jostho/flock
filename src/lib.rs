@@ -26,7 +26,7 @@ pub struct Country {
     flag: String,
 }
 
-pub fn is_valid_dir_path(val: String) -> Result<(), String> {
+pub fn is_valid_flag_dir(val: String) -> Result<(), String> {
     // check whether the directory is a copy of country-flags git repo
     let mut json_path_buf = PathBuf::from(&val);
     json_path_buf.push(COUNTRIES_JSON);
@@ -155,8 +155,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn is_valid_dir_path_for_target() {
-        let result = is_valid_dir_path("target".to_string());
+    fn is_valid_flag_dir_for_target() {
+        let result = is_valid_flag_dir("target".to_string());
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), "target is not valid");
     }

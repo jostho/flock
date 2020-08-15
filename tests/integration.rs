@@ -4,8 +4,8 @@ const COUNTRIES_COUNT: usize = 229;
 
 #[test]
 #[ignore]
-fn is_valid_dir_path_for_country_flags() {
-    let result = flock::is_valid_dir_path(COUNTRY_FLAGS_DIR.to_string());
+fn is_valid_flag_dir_for_country_flags() {
+    let result = flock::is_valid_flag_dir(COUNTRY_FLAGS_DIR.to_string());
     assert!(result.is_ok());
 }
 

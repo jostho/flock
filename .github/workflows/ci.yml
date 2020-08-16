@@ -60,7 +60,7 @@ jobs:
     - name: Build image
       run: make image
 
-   image-static-build:
+  image-static-build:
 
     runs-on: ubuntu-latest
 

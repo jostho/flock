@@ -38,3 +38,46 @@ jobs:
       run: cargo test
     - name: Run ignored tests
       run: cargo test -- --ignored
+
+  image-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+    - name: Print version
+      run: rustc --version --verbose && cargo --version
+    - name: Print make version
+      run: make --version
+    - name: Run make check
+      run: make check
+    - name: Build image
+      run: make image
+
+   image-static-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+        target: x86_64-unknown-linux-musl
+    - name: Print version
+      run: rustc --version --verbose && cargo --version
+    - name: Print make version
+      run: make --version
+    - name: Run make check
+      run: make check
+    - name: Build static image
+      run: make image-static

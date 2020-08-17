@@ -69,6 +69,8 @@ build-image:
 	$(BUILDAH) config \
 		--cmd $(IMAGE_BINARY_PATH) \
 		--port $(PORT) \
+		--env FLOCK_FLAG_DIR=$(IMAGE_SHARE_PATH)/$(COUNTRY_FLAGS) \
+		--env FLOCK_TEMPLATE_DIR=$(IMAGE_SHARE_PATH)/$(APP_NAME)/templates \
 		-l app-name=$(APP_NAME) -l app-version=$(APP_VERSION) \
 		-l app-git-version=$(GIT_VERSION) -l app-base-image=$(BASE_IMAGE_TYPE) \
 		$(CONTAINER)

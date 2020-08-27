@@ -2,11 +2,12 @@
 
 # required binaries
 CARGO := cargo
+CC := gcc
 BUILDAH := buildah
 GIT := git
 JQ := jq
-PODMAN := podman
 CURL := curl
+UNZIP := unzip
 
 GIT_BRANCH := $(shell $(GIT) rev-parse --abbrev-ref HEAD)
 GIT_COMMIT := $(shell $(GIT) rev-parse --short HEAD)
@@ -30,11 +31,12 @@ COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-master
 
 check:
 	$(CARGO) --version
+	$(CC) --version | head -1
 	$(BUILDAH) --version
 	$(GIT) --version
 	$(JQ) --version
-	$(PODMAN) --version
 	$(CURL) --version | head -1
+	$(UNZIP) -h | head -1
 
 clean:
 	$(CARGO) clean
@@ -47,7 +49,7 @@ build-static:
 
 get-flags:
 	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
-	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && unzip -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
+	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
 build-image-default: BASE_IMAGE_TYPE = ubi
 build-image-default: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1

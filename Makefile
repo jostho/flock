@@ -29,6 +29,9 @@ COUNTRY_FLAGS_ARCHIVE_URL := https://github.com/hjnilsson/$(COUNTRY_FLAGS)/archi
 COUNTRY_FLAGS_LOCAL_ARCHIVE := $(CURDIR)/target/master.zip
 COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-master
 
+RUSTC_PRINT_TARGET_CMD := rustc -Z unstable-options --print target-spec-json
+JQ_TARGET_CMD := $(JQ) -r '."llvm-target"'
+
 check:
 	$(CARGO) --version
 	$(CC) --version | head -1
@@ -56,6 +59,7 @@ build-image-default: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-default: BASE_IMAGE = $(UBI_BASE_IMAGE)
 build-image-default: IMAGE_NAME = jostho/$(APP_NAME):v$(APP_VERSION)
 build-image-default: LOCAL_BINARY_PATH = $(CURDIR)/target/release/$(APP_NAME)
+build-image-default: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 build-image-default: build-image
 
 build-image-static: BASE_IMAGE_TYPE = scratch
@@ -63,6 +67,7 @@ build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-static: BASE_IMAGE = $(BASE_IMAGE_TYPE)
 build-image-static: IMAGE_NAME = jostho/$(APP_NAME)-static:v$(APP_VERSION)
 build-image-static: LOCAL_BINARY_PATH = $(CURDIR)/target/$(TARGET_MUSL)/release/$(APP_NAME)
+build-image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 build-image-static: build-image
 
 build-image:
@@ -77,6 +82,7 @@ build-image:
 		--env FLOCK_TEMPLATE_DIR=$(IMAGE_SHARE_PATH)/$(APP_NAME)/templates \
 		-l app-name=$(APP_NAME) -l app-version=$(APP_VERSION) \
 		-l app-git-version=$(GIT_VERSION) -l app-base-image=$(BASE_IMAGE_TYPE) \
+		-l app-llvm-target=$(LLVM_TARGET) \
 		$(CONTAINER)
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)
 	$(BUILDAH) images

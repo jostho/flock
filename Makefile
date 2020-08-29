@@ -2,6 +2,7 @@
 
 # required binaries
 CARGO := cargo
+RUSTC := rustc
 CC := gcc
 BUILDAH := buildah
 GIT := git
@@ -29,11 +30,12 @@ COUNTRY_FLAGS_ARCHIVE_URL := https://github.com/hjnilsson/$(COUNTRY_FLAGS)/archi
 COUNTRY_FLAGS_LOCAL_ARCHIVE := $(CURDIR)/target/master.zip
 COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-master
 
-RUSTC_PRINT_TARGET_CMD := rustc -Z unstable-options --print target-spec-json
+RUSTC_PRINT_TARGET_CMD := $(RUSTC) -Z unstable-options --print target-spec-json
 JQ_TARGET_CMD := $(JQ) -r '."llvm-target"'
 
 check:
 	$(CARGO) --version
+	$(RUSTC) --version
 	$(CC) --version | head -1
 	$(BUILDAH) --version
 	$(GIT) --version

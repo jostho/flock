@@ -21,14 +21,14 @@ jobs:
       with:
         repository: hjnilsson/country-flags
         path: target/country-flags
-    - name: Install nightly
+    - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
         profile: minimal
         toolchain: nightly
         override: true
         components: rustfmt
-    - name: Print version
+    - name: Print rust version
       run: rustc --version --verbose && cargo --version
     - name: Check fmt
       run: cargo fmt -- --check
@@ -45,13 +45,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install nightly
+    - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
         profile: minimal
         toolchain: nightly
         override: true
-    - name: Print version
+    - name: Print rust version
       run: rustc --version --verbose && cargo --version
     - name: Print make version
       run: make --version
@@ -66,14 +66,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install nightly
+    - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
         profile: minimal
         toolchain: nightly
         override: true
         target: x86_64-unknown-linux-musl
-    - name: Print version
+    - name: Print rust version
       run: rustc --version --verbose && cargo --version
     - name: Print make version
       run: make --version

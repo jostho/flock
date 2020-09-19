@@ -10,6 +10,8 @@ JQ := jq
 CURL := curl
 UNZIP := unzip
 
+ARCH = $(shell arch)
+
 GIT_BRANCH := $(shell $(GIT) rev-parse --abbrev-ref HEAD)
 GIT_COMMIT := $(shell $(GIT) rev-parse --short HEAD)
 GIT_VERSION := $(GIT_BRANCH)/$(GIT_COMMIT)
@@ -23,7 +25,7 @@ IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME)
 IMAGE_SHARE_PATH := /usr/local/share
 PORT := 8000
 
-TARGET_MUSL := x86_64-unknown-linux-musl
+TARGET_MUSL := $(ARCH)-unknown-linux-musl
 
 COUNTRY_FLAGS := country-flags
 COUNTRY_FLAGS_ARCHIVE_URL := https://github.com/hjnilsson/$(COUNTRY_FLAGS)/archive/master.zip
@@ -82,8 +84,11 @@ build-image:
 		--port $(PORT) \
 		--env FLOCK_FLAG_DIR=$(IMAGE_SHARE_PATH)/$(COUNTRY_FLAGS) \
 		--env FLOCK_TEMPLATE_DIR=$(IMAGE_SHARE_PATH)/$(APP_NAME)/templates \
-		-l app-name=$(APP_NAME) -l app-version=$(APP_VERSION) \
-		-l app-git-version=$(GIT_VERSION) -l app-base-image=$(BASE_IMAGE_TYPE) \
+		-l app-name=$(APP_NAME) \
+		-l app-version=$(APP_VERSION) \
+		-l app-git-version=$(GIT_VERSION) \
+		-l app-arch=$(ARCH) \
+		-l app-base-image=$(BASE_IMAGE_TYPE) \
 		-l app-llvm-target=$(LLVM_TARGET) \
 		$(CONTAINER)
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)

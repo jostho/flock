@@ -55,7 +55,7 @@ build-static:
 	$(CARGO) build --release --target $(TARGET_MUSL)
 
 get-flags:
-	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
+	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
 	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
 build-image-default: BASE_IMAGE_TYPE = ubi

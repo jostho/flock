@@ -19,7 +19,7 @@ GIT_VERSION := $(GIT_BRANCH)/$(GIT_COMMIT)
 APP_NAME := $(shell $(CARGO) read-manifest | $(JQ) -r .name)
 APP_VERSION := $(shell $(CARGO) read-manifest | $(JQ) -r .version)
 
-UBI_BASE_IMAGE := registry.access.redhat.com/ubi8-minimal:8.2
+UBI_BASE_IMAGE := registry.access.redhat.com/ubi8-minimal:8.3
 
 IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME)
 IMAGE_SHARE_PATH := /usr/local/share

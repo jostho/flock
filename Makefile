@@ -4,6 +4,7 @@
 CARGO := cargo
 RUSTC := rustc
 CC := gcc
+LDD := ldd
 BUILDAH := buildah
 GIT := git
 JQ := jq
@@ -39,6 +40,7 @@ check:
 	$(CARGO) --version
 	$(RUSTC) --version
 	$(CC) --version | head -1
+	$(LDD) --version | head -1
 	$(BUILDAH) --version
 	$(GIT) --version
 	$(JQ) --version

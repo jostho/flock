@@ -23,8 +23,11 @@ APP_VERSION := $(shell $(CARGO) read-manifest | $(JQ) -r .version)
 UBI_BASE_IMAGE := registry.access.redhat.com/ubi8-minimal:8.3
 
 IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME)
+IMAGE_META_VERSION_PATH := /usr/local/etc/$(APP_NAME)-release
 IMAGE_SHARE_PATH := /usr/local/share
 PORT := 8000
+
+LOCAL_META_VERSION_PATH := $(CURDIR)/target/meta.version
 
 TARGET_MUSL := $(ARCH)-unknown-linux-musl
 
@@ -36,12 +39,16 @@ COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-master
 RUSTC_PRINT_TARGET_CMD := $(RUSTC) -Z unstable-options --print target-spec-json
 JQ_TARGET_CMD := $(JQ) -r '."llvm-target"'
 
-check:
+check: check-required check-optional
+
+check-required:
 	$(CARGO) --version
 	$(RUSTC) --version
 	$(CC) --version | head -1
 	$(LDD) --version | head -1
 	$(BUILDAH) --version
+
+check-optional:
 	$(GIT) --version
 	$(JQ) --version
 	$(CURL) --version | head -1
@@ -55,6 +62,10 @@ build:
 
 build-static:
 	$(CARGO) build --release --target $(TARGET_MUSL)
+
+prep-version-file:
+	mkdir -p $(CURDIR)/target && echo "$(APP_NAME) $(APP_VERSION)" > $(LOCAL_META_VERSION_PATH)
+	$(MAKE) -s check-required >> $(LOCAL_META_VERSION_PATH)
 
 get-flags:
 	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
@@ -79,6 +90,7 @@ build-image-static: build-image
 build-image:
 	$(BUILDAH) from --name $(CONTAINER) $(BASE_IMAGE)
 	$(BUILDAH) copy $(CONTAINER) $(LOCAL_BINARY_PATH) $(IMAGE_BINARY_PATH)
+	$(BUILDAH) copy $(CONTAINER) $(LOCAL_META_VERSION_PATH) $(IMAGE_META_VERSION_PATH)
 	$(BUILDAH) copy $(CONTAINER) templates $(IMAGE_SHARE_PATH)/$(APP_NAME)/templates
 	$(BUILDAH) copy $(CONTAINER) $(COUNTRY_FLAGS_LOCAL_DIR) $(IMAGE_SHARE_PATH)/$(COUNTRY_FLAGS)
 	$(BUILDAH) config \
@@ -96,10 +108,12 @@ build-image:
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)
 	$(BUILDAH) images
 
-image: clean build get-flags build-image-default
+image: clean build prep-version-file get-flags build-image-default
 
-image-static: clean build-static get-flags build-image-static
+image-static: clean build-static prep-version-file get-flags build-image-static
 
-.PHONY: check clean build build-static get-flags
+.PHONY: check check-required check-optional
+.PHONY: clean prep-version-file get-flags
+.PHONY: build build-static
 .PHONY: build-image-default build-image-static build-image
 .PHONY: image image-static

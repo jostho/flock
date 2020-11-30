@@ -63,11 +63,14 @@ build:
 build-static:
 	$(CARGO) build --release --target $(TARGET_MUSL)
 
-prep-version-file:
-	mkdir -p $(CURDIR)/target && echo "$(APP_NAME) $(APP_VERSION)" > $(LOCAL_META_VERSION_PATH)
+check-target-dir:
+	test -d $(CURDIR)/target
+
+prep-version-file: check-target-dir
+	echo "$(APP_NAME) $(APP_VERSION)" > $(LOCAL_META_VERSION_PATH)
 	$(MAKE) -s check-required >> $(LOCAL_META_VERSION_PATH)
 
-get-flags:
+get-flags: check-target-dir
 	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
 	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
@@ -112,7 +115,7 @@ image: clean build prep-version-file get-flags build-image-default
 
 image-static: clean build-static prep-version-file get-flags build-image-static
 
-.PHONY: check check-required check-optional
+.PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
 .PHONY: build build-static
 .PHONY: build-image-default build-image-static build-image

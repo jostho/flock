@@ -10,6 +10,7 @@ GIT := git
 JQ := jq
 CURL := curl
 UNZIP := unzip
+PODMAN := podman
 
 ARCH = $(shell arch)
 
@@ -53,6 +54,7 @@ check-optional:
 	$(JQ) --version
 	$(CURL) --version | head -1
 	$(UNZIP) -h | head -1
+	$(PODMAN) --version
 
 clean:
 	$(CARGO) clean
@@ -110,6 +112,7 @@ build-image:
 		$(CONTAINER)
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)
 	$(BUILDAH) images
+	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
 image: clean build prep-version-file get-flags build-image-default
 

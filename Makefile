@@ -47,9 +47,9 @@ check-required:
 	$(RUSTC) --version
 	$(CC) --version | head -1
 	$(LDD) --version | head -1
-	$(BUILDAH) --version
 
 check-optional:
+	$(BUILDAH) --version
 	$(GIT) --version
 	$(JQ) --version
 	$(CURL) --version | head -1
@@ -69,7 +69,7 @@ check-target-dir:
 	test -d $(CURDIR)/target
 
 prep-version-file: check-target-dir
-	echo "$(APP_NAME) $(APP_VERSION)" > $(LOCAL_META_VERSION_PATH)
+	echo "$(APP_NAME) $(APP_VERSION) $(LLVM_TARGET)" > $(LOCAL_META_VERSION_PATH)
 	$(MAKE) -s check-required >> $(LOCAL_META_VERSION_PATH)
 
 get-flags: check-target-dir
@@ -81,7 +81,6 @@ build-image-default: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-default: BASE_IMAGE = $(UBI_BASE_IMAGE)
 build-image-default: IMAGE_NAME = jostho/$(APP_NAME):v$(APP_VERSION)
 build-image-default: LOCAL_BINARY_PATH = $(CURDIR)/target/release/$(APP_NAME)
-build-image-default: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 build-image-default: build-image
 
 build-image-static: BASE_IMAGE_TYPE = scratch
@@ -89,7 +88,6 @@ build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-static: BASE_IMAGE = $(BASE_IMAGE_TYPE)
 build-image-static: IMAGE_NAME = jostho/$(APP_NAME)-static:v$(APP_VERSION)
 build-image-static: LOCAL_BINARY_PATH = $(CURDIR)/target/$(TARGET_MUSL)/release/$(APP_NAME)
-build-image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 build-image-static: build-image
 
 build-image:
@@ -114,8 +112,10 @@ build-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
+image: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 image: clean build prep-version-file get-flags build-image-default
 
+image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 image-static: clean build-static prep-version-file get-flags build-image-static
 
 .PHONY: check check-required check-optional check-target-dir

@@ -1,0 +1,56 @@
+name: Image
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  image-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - name: Print rust version
+        run: rustc --version --verbose && cargo --version
+      - name: Print make version
+        run: make --version
+      - name: Run make check
+        run: make check
+      - name: Build image
+        run: make image
+
+  image-static-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          target: x86_64-unknown-linux-musl
+      - name: Print rust version
+        run: rustc --version --verbose && cargo --version
+      - name: Print make version
+        run: make --version
+      - name: Run make check
+        run: make check
+      - name: Build static image
+        run: make image-static

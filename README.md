@@ -6,10 +6,10 @@ This is a flag quiz program written in rust using [rocket](https://github.com/Se
 
 ## Environment
 
-* fedora 32
-* rustup 1.22
-* rust 1.48.0-nightly
-* make 4.2
+* fedora 33
+* rustup 1.23
+* rust 1.51.0-nightly
+* make 4.3
 
 ## Build
 

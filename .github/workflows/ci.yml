@@ -20,7 +20,7 @@ jobs:
       - name: Checkout country-flags repo
         uses: actions/checkout@v2
         with:
-          repository: hjnilsson/country-flags
+          repository: hampusborgos/country-flags
           path: target/country-flags
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1

@@ -6,9 +6,9 @@ This is a flag quiz program written in rust using [rocket](https://github.com/Se
 
 ## Environment
 
-* fedora 33
-* rustup 1.23
-* rust 1.51.0-nightly
+* fedora 34
+* rustup 1.24
+* rust 1.54.0-nightly
 * make 4.3
 
 ## Build
@@ -19,9 +19,9 @@ To build, use `cargo`
 
 ## Run
 
-Get `country-flags` sources from [here](https://github.com/hjnilsson/country-flags.git)
+Get `country-flags` sources from [here](https://github.com/hampusborgos/country-flags)
 
-    git clone https://github.com/hjnilsson/country-flags.git
+    git clone https://github.com/hampusborgos/country-flags.git
 
 Start the binary - pass in the location of `country-flags` directory
 

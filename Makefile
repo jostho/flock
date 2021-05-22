@@ -33,9 +33,9 @@ LOCAL_META_VERSION_PATH := $(CURDIR)/target/meta.version
 TARGET_MUSL := $(ARCH)-unknown-linux-musl
 
 COUNTRY_FLAGS := country-flags
-COUNTRY_FLAGS_ARCHIVE_URL := https://github.com/hjnilsson/$(COUNTRY_FLAGS)/archive/master.zip
-COUNTRY_FLAGS_LOCAL_ARCHIVE := $(CURDIR)/target/master.zip
-COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-master
+COUNTRY_FLAGS_ARCHIVE_URL := https://github.com/hampusborgos/$(COUNTRY_FLAGS)/archive/main.zip
+COUNTRY_FLAGS_LOCAL_ARCHIVE := $(CURDIR)/target/main.zip
+COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-main
 
 RUSTC_PRINT_TARGET_CMD := $(RUSTC) -Z unstable-options --print target-spec-json
 JQ_TARGET_CMD := $(JQ) -r '."llvm-target"'

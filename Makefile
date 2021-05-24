@@ -21,8 +21,6 @@ GIT_VERSION := $(GIT_BRANCH)/$(GIT_COMMIT)
 APP_NAME := $(shell $(CARGO) read-manifest | $(JQ) -r .name)
 APP_VERSION := $(shell $(CARGO) read-manifest | $(JQ) -r .version)
 
-UBI_BASE_IMAGE := registry.access.redhat.com/ubi8-minimal:8.3
-
 IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME)
 IMAGE_META_VERSION_PATH := /usr/local/etc/$(APP_NAME)-release
 IMAGE_SHARE_PATH := /usr/local/share
@@ -76,21 +74,30 @@ get-flags: check-target-dir
 	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
 	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
-build-image-default: BASE_IMAGE_TYPE = ubi
-build-image-default: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
-build-image-default: BASE_IMAGE = $(UBI_BASE_IMAGE)
+# target for Containerfile
+build-prep: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
+build-prep: build prep-version-file get-flags
+
+build-image-default: BASE_IMAGE_TYPE = debian
 build-image-default: IMAGE_NAME = jostho/$(APP_NAME):v$(APP_VERSION)
-build-image-default: LOCAL_BINARY_PATH = $(CURDIR)/target/release/$(APP_NAME)
-build-image-default: build-image
+build-image-default:
+	$(BUILDAH) bud \
+		--tag $(IMAGE_NAME) \
+		--label app-name=$(APP_NAME) \
+		--label app-version=$(APP_VERSION) \
+		--label app-git-version=$(GIT_VERSION) \
+		--label app-arch=$(ARCH) \
+		--label app-base-image=$(BASE_IMAGE_TYPE) \
+		-f Containerfile .
+	$(BUILDAH) images
+	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
 build-image-static: BASE_IMAGE_TYPE = scratch
 build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-static: BASE_IMAGE = $(BASE_IMAGE_TYPE)
 build-image-static: IMAGE_NAME = jostho/$(APP_NAME)-static:v$(APP_VERSION)
 build-image-static: LOCAL_BINARY_PATH = $(CURDIR)/target/$(TARGET_MUSL)/release/$(APP_NAME)
-build-image-static: build-image
-
-build-image:
+build-image-static:
 	$(BUILDAH) from --name $(CONTAINER) $(BASE_IMAGE)
 	$(BUILDAH) copy $(CONTAINER) $(LOCAL_BINARY_PATH) $(IMAGE_BINARY_PATH)
 	$(BUILDAH) copy $(CONTAINER) $(LOCAL_META_VERSION_PATH) $(IMAGE_META_VERSION_PATH)
@@ -112,14 +119,13 @@ build-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
-image: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
-image: clean build prep-version-file get-flags build-image-default
+image: clean build-image-default
 
 image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 image-static: clean build-static prep-version-file get-flags build-image-static
 
 .PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
-.PHONY: build build-static
-.PHONY: build-image-default build-image-static build-image
+.PHONY: build build-static build-prep
+.PHONY: build-image-default build-image-static
 .PHONY: image image-static

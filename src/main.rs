@@ -5,10 +5,13 @@ extern crate rocket;
 
 use clap::{App, Arg};
 use rocket::config::{Config, Environment};
+use rocket::response::NamedFile;
 use rocket::response::Redirect;
 use rocket::{Rocket, State};
 use rocket_contrib::templates::Template;
 use std::collections::HashMap;
+use std::env;
+use std::path::Path;
 
 const ARG_PORT: &str = "port";
 const ARG_LOCAL: &str = "local";
@@ -22,6 +25,9 @@ const BIND_LOCALHOST: &str = "127.0.0.1";
 const ARG_TEMPLATE_DIR: &str = "template-dir";
 const ENV_TEMPLATE_DIR: &str = "FLOCK_TEMPLATE_DIR";
 const DEFAULT_TEMPLATE_DIR: &str = "templates";
+
+const ENV_RELEASE_FILE: &str = "FLOCK_RELEASE";
+const DEFAULT_RELEASE_FILE: &str = "/usr/local/etc/flock-release";
 
 struct AppConfig {
     local: bool,
@@ -44,6 +50,15 @@ fn healthcheck() -> &'static str {
 #[get("/version")]
 fn version() -> &'static str {
     clap::crate_version!()
+}
+
+#[get("/release")]
+fn release() -> Option<NamedFile> {
+    let release_file = match env::var(ENV_RELEASE_FILE) {
+        Ok(val) => val,
+        Err(_e) => DEFAULT_RELEASE_FILE.to_string(),
+    };
+    NamedFile::open(Path::new(&release_file)).ok()
 }
 
 #[get("/list")]
@@ -70,7 +85,10 @@ fn rocket(app_config: AppConfig) -> Rocket {
         .extra("template_dir", app_config.template_dir.to_string())
         .unwrap();
     rocket::custom(rocket_config)
-        .mount("/", routes![index, healthcheck, version, list, quiz])
+        .mount(
+            "/",
+            routes![index, healthcheck, version, release, list, quiz],
+        )
         .attach(Template::fairing())
         .manage(app_config)
 }

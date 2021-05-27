@@ -21,11 +21,11 @@ To build, use `cargo`
 
 Get `country-flags` sources from [here](https://github.com/hampusborgos/country-flags)
 
-    git clone https://github.com/hampusborgos/country-flags.git
+    make get-flags
 
 Start the binary - pass in the location of `country-flags` directory
 
-    ./target/debug/flock -d ~/src/country-flags/
+    ./target/debug/flock -d ./target/country-flags-main/
 
 Open a browser - and access the application at `http://localhost:8000/`
 

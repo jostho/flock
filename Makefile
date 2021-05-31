@@ -20,6 +20,8 @@ GIT_VERSION := $(GIT_BRANCH)/$(GIT_COMMIT)
 
 APP_NAME := $(shell $(CARGO) read-manifest | $(JQ) -r .name)
 APP_VERSION := $(shell $(CARGO) read-manifest | $(JQ) -r .version)
+APP_REPOSITORY := $(shell $(CARGO) read-manifest | $(JQ) -r .repository)
+APP_OWNER := jostho
 
 IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME)
 IMAGE_META_VERSION_PATH := /usr/local/etc/$(APP_NAME)-release
@@ -37,6 +39,15 @@ COUNTRY_FLAGS_LOCAL_DIR := $(CURDIR)/target/$(COUNTRY_FLAGS)-main
 
 RUSTC_PRINT_TARGET_CMD := $(RUSTC) -Z unstable-options --print target-spec-json
 JQ_TARGET_CMD := $(JQ) -r '."llvm-target"'
+
+# github action sets "CI=true"
+ifeq ($(CI), true)
+IMAGE_PREFIX := ghcr.io/$(APP_OWNER)
+IMAGE_VERSION := $(GIT_COMMIT)
+else
+IMAGE_PREFIX := $(APP_OWNER)
+IMAGE_VERSION := v$(APP_VERSION)
+endif
 
 check: check-required check-optional
 
@@ -79,7 +90,6 @@ build-prep: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 build-prep: build prep-version-file get-flags
 
 build-image-default: BASE_IMAGE_TYPE = debian
-build-image-default: IMAGE_NAME = jostho/$(APP_NAME):v$(APP_VERSION)
 build-image-default:
 	$(BUILDAH) bud \
 		--tag $(IMAGE_NAME) \
@@ -88,14 +98,12 @@ build-image-default:
 		--label app-git-version=$(GIT_VERSION) \
 		--label app-arch=$(ARCH) \
 		--label app-base-image=$(BASE_IMAGE_TYPE) \
+		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
 		-f Containerfile .
-	$(BUILDAH) images
-	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
 build-image-static: BASE_IMAGE_TYPE = scratch
 build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
 build-image-static: BASE_IMAGE = $(BASE_IMAGE_TYPE)
-build-image-static: IMAGE_NAME = jostho/$(APP_NAME)-static:v$(APP_VERSION)
 build-image-static: LOCAL_BINARY_PATH = $(CURDIR)/target/$(TARGET_MUSL)/release/$(APP_NAME)
 build-image-static:
 	$(BUILDAH) from --name $(CONTAINER) $(BASE_IMAGE)
@@ -114,18 +122,26 @@ build-image-static:
 		-l app-arch=$(ARCH) \
 		-l app-base-image=$(BASE_IMAGE_TYPE) \
 		-l app-llvm-target=$(LLVM_TARGET) \
+		-l org.opencontainers.image.source=$(APP_REPOSITORY) \
 		$(CONTAINER)
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)
+
+push-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
+ifeq ($(CI), true)
+	$(BUILDAH) push $(IMAGE_NAME)
+endif
 
-image: clean build-image-default
+image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
+image: clean build-image-default push-image
 
+image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
 image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
-image-static: clean build-static prep-version-file get-flags build-image-static
+image-static: clean build-static prep-version-file get-flags build-image-static push-image
 
 .PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
 .PHONY: build build-static build-prep
-.PHONY: build-image-default build-image-static
+.PHONY: build-image-default build-image-static push-image
 .PHONY: image image-static

@@ -126,22 +126,25 @@ build-image-static:
 		$(CONTAINER)
 	$(BUILDAH) commit --rm $(CONTAINER) $(IMAGE_NAME)
 
-push-image:
+verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
+
+push-image:
 ifeq ($(CI), true)
 	$(BUILDAH) push $(IMAGE_NAME)
 endif
 
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-image: clean build-image-default push-image
+image: clean build-image-default verify-image
 
 image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
 image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
-image-static: clean build-static prep-version-file get-flags build-image-static push-image
+image-static: clean build-static prep-version-file get-flags build-image-static verify-image push-image
 
 .PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
 .PHONY: build build-static build-prep
-.PHONY: build-image-default build-image-static push-image
+.PHONY: build-image-default build-image-static
+.PHONY: verify-image push-image
 .PHONY: image image-static

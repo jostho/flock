@@ -89,7 +89,7 @@ get-flags: check-target-dir
 build-prep: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 build-prep: build prep-version-file get-flags
 
-build-image-default: BASE_IMAGE_TYPE = debian
+build-image-default: BASE_IMAGE = debian
 build-image-default:
 	$(BUILDAH) bud \
 		--tag $(IMAGE_NAME) \
@@ -97,13 +97,12 @@ build-image-default:
 		--label app-version=$(APP_VERSION) \
 		--label app-git-version=$(GIT_VERSION) \
 		--label app-arch=$(ARCH) \
-		--label app-base-image=$(BASE_IMAGE_TYPE) \
+		--label app-base-image=$(BASE_IMAGE) \
 		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
 		-f Containerfile .
 
-build-image-static: BASE_IMAGE_TYPE = scratch
-build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE_TYPE)-build-1
-build-image-static: BASE_IMAGE = $(BASE_IMAGE_TYPE)
+build-image-static: BASE_IMAGE = scratch
+build-image-static: CONTAINER = $(APP_NAME)-$(BASE_IMAGE)-build-1
 build-image-static: LOCAL_BINARY_PATH = $(CURDIR)/target/$(TARGET_MUSL)/release/$(APP_NAME)
 build-image-static:
 	$(BUILDAH) from --name $(CONTAINER) $(BASE_IMAGE)
@@ -120,7 +119,7 @@ build-image-static:
 		-l app-version=$(APP_VERSION) \
 		-l app-git-version=$(GIT_VERSION) \
 		-l app-arch=$(ARCH) \
-		-l app-base-image=$(BASE_IMAGE_TYPE) \
+		-l app-base-image=$(BASE_IMAGE) \
 		-l app-llvm-target=$(LLVM_TARGET) \
 		-l org.opencontainers.image.source=$(APP_REPOSITORY) \
 		$(CONTAINER)

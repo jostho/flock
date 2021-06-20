@@ -1,4 +1,3 @@
-# tested with make 4.2.1
 
 # required binaries
 CARGO := cargo

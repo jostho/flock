@@ -8,7 +8,7 @@ COPY . /usr/local/src/flock
 RUN make build-prep
 
 # debian buster
-FROM docker.io/library/debian:10.9
+FROM docker.io/library/debian:10.10
 COPY --from=builder /usr/local/src/flock/target/release/flock /usr/local/bin
 COPY --from=builder /usr/local/src/flock/target/meta.version /usr/local/etc/flock-release
 COPY --from=builder /usr/local/src/flock/target/country-flags-main /usr/local/share/country-flags

@@ -1,5 +1,5 @@
 # rust builder
-FROM docker.io/library/rust:1.52 as builder
+FROM docker.io/library/rust:1.54 as builder
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update && apt-get -y -qq install jq
 RUN rustup toolchain install nightly --profile minimal && rustup default nightly

@@ -1,5 +1,5 @@
 # rust builder
-FROM docker.io/library/rust:1.55 as builder
+FROM docker.io/library/rust:1.61 as builder
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update && apt-get -y -qq install jq
 RUN rustup toolchain install nightly --profile minimal && rustup default nightly
@@ -7,8 +7,8 @@ WORKDIR /usr/local/src/flock
 COPY . /usr/local/src/flock
 RUN make build-prep
 
-# debian buster
-FROM docker.io/library/debian:11.0
+# debian
+FROM docker.io/library/debian:11
 COPY --from=builder /usr/local/src/flock/target/release/flock /usr/local/bin
 COPY --from=builder /usr/local/src/flock/target/meta.version /usr/local/etc/flock-release
 COPY --from=builder /usr/local/src/flock/target/country-flags-main /usr/local/share/country-flags

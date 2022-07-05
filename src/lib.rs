@@ -112,7 +112,7 @@ pub fn get_country_codes(countries: &HashMap<String, String>) -> Vec<String> {
 pub fn get_question(countries: &HashMap<String, String>, flag_dir: &str) -> Question {
     let mut rng = rand::thread_rng();
     let mut country_codes: Vec<String> = countries.keys().cloned().collect();
-    let index = rng.gen_range(0, country_codes.len());
+    let index = rng.gen_range(0..country_codes.len());
     let cca2 = &country_codes[index].to_string();
     let name = &countries[cca2];
     let country = get_country_with_flag(cca2, name, flag_dir);

@@ -1,16 +1,14 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
 use clap::{App, Arg};
-use rocket::config::{Config, Environment};
-use rocket::response::NamedFile;
+use rocket::fs::NamedFile;
 use rocket::response::Redirect;
-use rocket::{Rocket, State};
-use rocket_contrib::templates::Template;
+use rocket::{Build, Config, Rocket, State};
+use rocket_dyn_templates::Template;
 use std::collections::HashMap;
 use std::env;
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 
 const ARG_PORT: &str = "port";
@@ -19,8 +17,6 @@ const ARG_FLAG_DIR: &str = "flag-dir";
 const ENV_FLAG_DIR: &str = "FLOCK_FLAG_DIR";
 
 const DEFAULT_PORT: u16 = 8000;
-const BIND_ALL: &str = "0.0.0.0";
-const BIND_LOCALHOST: &str = "127.0.0.1";
 
 const ARG_TEMPLATE_DIR: &str = "template-dir";
 const ENV_TEMPLATE_DIR: &str = "FLOCK_TEMPLATE_DIR";
@@ -53,38 +49,38 @@ fn version() -> &'static str {
 }
 
 #[get("/release")]
-fn release() -> Option<NamedFile> {
+async fn release() -> Option<NamedFile> {
     let release_file = match env::var(ENV_RELEASE_FILE) {
         Ok(val) => val,
         Err(_e) => DEFAULT_RELEASE_FILE.to_string(),
     };
-    NamedFile::open(Path::new(&release_file)).ok()
+    NamedFile::open(Path::new(&release_file)).await.ok()
 }
 
 #[get("/list")]
-fn list(config: State<AppConfig>) -> String {
+fn list(config: &State<AppConfig>) -> String {
     format!("{:?}", flock::get_country_codes(&config.countries))
 }
 
 #[get("/quiz")]
-fn quiz(config: State<AppConfig>) -> Template {
+fn quiz(config: &State<AppConfig>) -> Template {
     let question = flock::get_question(&config.countries, &config.flag_dir);
     Template::render("quiz", &question)
 }
 
-fn rocket(app_config: AppConfig) -> Rocket {
+fn rocket(app_config: AppConfig) -> Rocket<Build> {
     // decide bind interface
     let address = if app_config.local {
-        BIND_LOCALHOST
+        IpAddr::V4(Ipv4Addr::LOCALHOST)
     } else {
-        BIND_ALL // default
+        IpAddr::V4(Ipv4Addr::UNSPECIFIED)
     };
-    let rocket_config = Config::build(Environment::Staging)
-        .address(address)
-        .port(app_config.port)
-        .extra("template_dir", app_config.template_dir.to_string())
-        .unwrap();
-    rocket::custom(rocket_config)
+
+    let figment = Config::figment()
+        .merge(("port", app_config.port))
+        .merge(("address", address))
+        .merge(("template_dir", app_config.template_dir.to_string()));
+    rocket::custom(figment)
         .mount(
             "/",
             routes![index, healthcheck, version, release, list, quiz],
@@ -93,7 +89,8 @@ fn rocket(app_config: AppConfig) -> Rocket {
         .manage(app_config)
 }
 
-fn main() {
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
     let args = App::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
@@ -152,28 +149,31 @@ fn main() {
         countries,
     };
 
-    rocket(config).launch();
+    rocket(config).launch().await?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use rocket::http::Status;
-    use rocket::local::Client;
+    use rocket::local::blocking::Client;
 
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]
     fn rocket_for_dummy_config() {
         let rocket = rocket(dummy_config());
-        assert_eq!(rocket.config().environment, Environment::Staging);
-        assert_eq!(rocket.config().address, BIND_ALL);
-        assert_eq!(rocket.config().port, DEFAULT_PORT);
+        let figment = rocket.figment();
+        let ipaddr: IpAddr = figment.extract_inner("address").unwrap();
+        assert_eq!(ipaddr, IpAddr::V4(Ipv4Addr::UNSPECIFIED));
+        let port: u16 = figment.extract_inner("port").unwrap();
+        assert_eq!(port, DEFAULT_PORT);
     }
 
     #[test]
     fn get_index() {
-        let client = Client::new(rocket(dummy_config())).unwrap();
+        let client = Client::tracked(rocket(dummy_config())).unwrap();
         let response = client.get("/").dispatch();
         assert_eq!(response.status(), Status::SeeOther);
         assert_eq!(response.headers().get_one("Location"), Some("/quiz"));
@@ -181,30 +181,29 @@ mod tests {
 
     #[test]
     fn get_healthcheck() {
-        let client = Client::new(rocket(dummy_config())).unwrap();
-        let mut response = client.get("/healthcheck").dispatch();
+        let client = Client::tracked(rocket(dummy_config())).unwrap();
+        let response = client.get("/healthcheck").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.body_string(), Some("Ok".into()));
+        assert_eq!(response.into_string().unwrap(), "Ok");
     }
 
     #[test]
     fn get_version() {
-        let client = Client::new(rocket(dummy_config())).unwrap();
-        let mut response = client.get("/version").dispatch();
+        let client = Client::tracked(rocket(dummy_config())).unwrap();
+        let response = client.get("/version").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.body_string(), Some(clap::crate_version!().into()));
+        let version: String = clap::crate_version!().into();
+        assert_eq!(response.into_string().unwrap(), version);
     }
 
     #[test]
     fn get_list() {
-        let client = Client::new(rocket(dummy_config())).unwrap();
-        let mut response = client.get("/list").dispatch();
+        let client = Client::tracked(rocket(dummy_config())).unwrap();
+        let response = client.get("/list").dispatch();
         assert_eq!(response.status(), Status::Ok);
         let country_codes = ["AD", "AE", "AF", "ZA", "ZM", "ZW"];
-        assert_eq!(
-            response.body_string(),
-            Some(format!("{:?}", country_codes).into())
-        );
+        let country_codes_output = format!("{:?}", country_codes);
+        assert_eq!(response.into_string().unwrap(), country_codes_output);
     }
 
     fn dummy_config() -> AppConfig {

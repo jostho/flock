@@ -1,5 +1,5 @@
-// tests expects "country-flags" sources at "target/country-flags"
-const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
+// tests expects "country-flags" sources at "target/country-flags-main"
+const COUNTRY_FLAGS_DIR: &str = "target/country-flags-main";
 const COUNTRIES_COUNT: usize = 228;
 
 #[test]

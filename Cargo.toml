@@ -12,8 +12,8 @@ edition = "2021"
 [dependencies]
 rocket = "0.5.0-rc.2"
 rocket_dyn_templates = { version = "0.1.0-rc.2", features = ["handlebars"] }
-clap = "2.33"
+clap = { version = "3.2", features = ["derive", "env"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rand = "0.8"
-base64 = "0.12"
+base64 = "0.13"

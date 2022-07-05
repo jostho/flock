@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
-use clap::{App, Arg};
+use clap::Parser;
 use rocket::fs::NamedFile;
 use rocket::response::Redirect;
 use rocket::{Build, Config, Rocket, State};
@@ -11,19 +11,35 @@ use std::env;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 
-const ARG_PORT: &str = "port";
-const ARG_LOCAL: &str = "local";
-const ARG_FLAG_DIR: &str = "flag-dir";
+const DEFAULT_PORT: u16 = 8000;
 const ENV_FLAG_DIR: &str = "FLOCK_FLAG_DIR";
 
-const DEFAULT_PORT: u16 = 8000;
-
-const ARG_TEMPLATE_DIR: &str = "template-dir";
 const ENV_TEMPLATE_DIR: &str = "FLOCK_TEMPLATE_DIR";
 const DEFAULT_TEMPLATE_DIR: &str = "templates";
 
 const ENV_RELEASE_FILE: &str = "FLOCK_RELEASE";
 const DEFAULT_RELEASE_FILE: &str = "/usr/local/etc/flock-release";
+
+/// Read cli args
+#[derive(Parser, Debug)]
+#[clap(version, about)]
+struct Args {
+    /// Port number to use
+    #[clap(short, long, value_parser, default_value_t = 8000, validator = flock::is_valid_port)]
+    port: u16,
+
+    /// Bind on local interface
+    #[clap(short, long)]
+    local: bool,
+
+    /// Flag dir
+    #[clap(short, long, value_parser, env = ENV_FLAG_DIR, validator = flock::is_valid_flag_dir)]
+    flag_dir: String,
+
+    /// Template dir
+    #[clap(short, long, value_parser, env = ENV_TEMPLATE_DIR, default_value = DEFAULT_TEMPLATE_DIR, validator = flock::is_valid_template_dir)]
+    template_dir: String,
+}
 
 struct AppConfig {
     local: bool,
@@ -45,7 +61,7 @@ fn healthcheck() -> &'static str {
 
 #[get("/version")]
 fn version() -> &'static str {
-    clap::crate_version!()
+    env!("CARGO_PKG_VERSION")
 }
 
 #[get("/release")]
@@ -91,61 +107,19 @@ fn rocket(app_config: AppConfig) -> Rocket<Build> {
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    let args = App::new(clap::crate_name!())
-        .about(clap::crate_description!())
-        .version(clap::crate_version!())
-        .arg(
-            Arg::with_name(ARG_PORT)
-                .long(ARG_PORT)
-                .help("Port number to use")
-                .default_value("8000")
-                .validator(flock::is_valid_port),
-        )
-        .arg(
-            Arg::with_name(ARG_LOCAL)
-                .long(ARG_LOCAL)
-                .help("Bind on local interface")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name(ARG_FLAG_DIR)
-                .short("d")
-                .long(ARG_FLAG_DIR)
-                .env(ENV_FLAG_DIR)
-                .help("Flag dir")
-                .takes_value(true)
-                .validator(flock::is_valid_flag_dir)
-                .required(true),
-        )
-        .arg(
-            Arg::with_name(ARG_TEMPLATE_DIR)
-                .long(ARG_TEMPLATE_DIR)
-                .env(ENV_TEMPLATE_DIR)
-                .help("Template dir")
-                .default_value(DEFAULT_TEMPLATE_DIR)
-                .validator(flock::is_valid_template_dir),
-        )
-        .get_matches();
-
-    // bind details
-    let port = args.value_of(ARG_PORT).unwrap();
-    let port: u16 = port.parse().unwrap();
-    let local = args.is_present(ARG_LOCAL);
-
-    let flag_dir = args.value_of(ARG_FLAG_DIR).unwrap();
-    let template_dir = args.value_of(ARG_TEMPLATE_DIR).unwrap();
-    let countries = flock::get_countries(flag_dir);
+    let args = Args::parse();
+    let countries = flock::get_countries(&args.flag_dir);
 
     println!(
         "Using flag dir: {} , countries: {}",
-        flag_dir,
+        args.flag_dir,
         countries.len()
     );
     let config = AppConfig {
-        local,
-        port,
-        flag_dir: flag_dir.to_string(),
-        template_dir: template_dir.to_string(),
+        local: args.local,
+        port: args.port,
+        flag_dir: args.flag_dir.to_string(),
+        template_dir: args.template_dir.to_string(),
         countries,
     };
 
@@ -192,8 +166,7 @@ mod tests {
         let client = Client::tracked(rocket(dummy_config())).unwrap();
         let response = client.get("/version").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        let version: String = clap::crate_version!().into();
-        assert_eq!(response.into_string().unwrap(), version);
+        assert_eq!(response.into_string().unwrap(), env!("CARGO_PKG_VERSION"));
     }
 
     #[test]

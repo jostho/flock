@@ -27,7 +27,7 @@ pub struct Country {
     flag: String,
 }
 
-pub fn is_valid_flag_dir(val: String) -> Result<(), String> {
+pub fn is_valid_flag_dir(val: &str) -> Result<(), String> {
     // check whether the directory is a copy of country-flags git repo
     let mut json_path_buf = PathBuf::from(&val);
     json_path_buf.push(COUNTRIES_JSON);
@@ -51,7 +51,7 @@ pub fn is_valid_flag_dir(val: String) -> Result<(), String> {
     }
 }
 
-pub fn is_valid_template_dir(val: String) -> Result<(), String> {
+pub fn is_valid_template_dir(val: &str) -> Result<(), String> {
     let mut hbs_path_buf = PathBuf::from(&val);
     hbs_path_buf.push(QUIZ_HBS);
     if Path::new(&val).is_dir() && hbs_path_buf.as_path().is_file() {
@@ -61,7 +61,7 @@ pub fn is_valid_template_dir(val: String) -> Result<(), String> {
     }
 }
 
-pub fn is_valid_port(val: String) -> Result<(), String> {
+pub fn is_valid_port(val: &str) -> Result<(), String> {
     let port: u16 = match val.parse() {
         Ok(port) => port,
         Err(e) => return Err(e.to_string()),
@@ -167,35 +167,35 @@ mod tests {
 
     #[test]
     fn is_valid_flag_dir_for_target() {
-        let result = is_valid_flag_dir("target".to_string());
+        let result = is_valid_flag_dir("target");
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), "target is not valid");
     }
 
     #[test]
     fn is_valid_template_dir_for_templates() {
-        let result = is_valid_template_dir("templates".to_string());
+        let result = is_valid_template_dir("templates");
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), ());
     }
 
     #[test]
     fn is_valid_port_for_string() {
-        let result = is_valid_port("str".to_string());
+        let result = is_valid_port("str");
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), "invalid digit found in string");
     }
 
     #[test]
     fn is_valid_port_for_8000() {
-        let result = is_valid_port("8000".to_string());
+        let result = is_valid_port("8000");
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), ());
     }
 
     #[test]
     fn is_valid_port_for_max_port() {
-        let result = is_valid_port(MAX_PORT.to_string());
+        let result = is_valid_port(&MAX_PORT.to_string());
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),

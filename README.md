@@ -7,9 +7,9 @@ This is a flag quiz program written in rust using [rocket](https://github.com/Se
 
 ## Environment
 
-* fedora 34
+* fedora 36
 * rustup 1.24
-* rust 1.54.0-nightly
+* rust 1.61
 * make 4.3
 
 ## Build

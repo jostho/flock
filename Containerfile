@@ -17,3 +17,5 @@ CMD ["/usr/local/bin/flock"]
 EXPOSE 8000
 ENV FLOCK_FLAG_DIR=/usr/local/share/country-flags
 ENV FLOCK_TEMPLATE_DIR=/usr/local/share/flock/templates
+ENV ROCKET_LOG_LEVEL=normal
+ENV ROCKET_CLI_COLORS=false

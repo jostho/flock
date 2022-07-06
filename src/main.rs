@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate rocket;
-
 use clap::Parser;
 use rocket::fs::NamedFile;
 use rocket::response::Redirect;
@@ -49,22 +46,22 @@ struct AppConfig {
     countries: HashMap<String, String>,
 }
 
-#[get("/")]
+#[rocket::get("/")]
 fn index() -> Redirect {
     Redirect::to("/quiz")
 }
 
-#[get("/healthcheck")]
+#[rocket::get("/healthcheck")]
 fn healthcheck() -> &'static str {
     "Ok"
 }
 
-#[get("/version")]
+#[rocket::get("/version")]
 fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-#[get("/release")]
+#[rocket::get("/release")]
 async fn release() -> Option<NamedFile> {
     let release_file = match env::var(ENV_RELEASE_FILE) {
         Ok(val) => val,
@@ -73,12 +70,12 @@ async fn release() -> Option<NamedFile> {
     NamedFile::open(Path::new(&release_file)).await.ok()
 }
 
-#[get("/list")]
+#[rocket::get("/list")]
 fn list(config: &State<AppConfig>) -> String {
     format!("{:?}", flock::get_country_codes(&config.countries))
 }
 
-#[get("/quiz")]
+#[rocket::get("/quiz")]
 fn quiz(config: &State<AppConfig>) -> Template {
     let question = flock::get_question(&config.countries, &config.flag_dir);
     Template::render("quiz", &question)
@@ -99,7 +96,7 @@ fn rocket(app_config: AppConfig) -> Rocket<Build> {
     rocket::custom(figment)
         .mount(
             "/",
-            routes![index, healthcheck, version, release, list, quiz],
+            rocket::routes![index, healthcheck, version, release, list, quiz],
         )
         .attach(Template::fairing())
         .manage(app_config)

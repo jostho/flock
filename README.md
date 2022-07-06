@@ -26,7 +26,7 @@ Get `country-flags` sources from [here](https://github.com/hampusborgos/country-
 
 Start the binary - pass in the location of `country-flags` directory
 
-    ./target/debug/flock -d ./target/country-flags-main/
+    ./target/debug/flock -f ./target/country-flags-main/
 
 Open a browser - and access the application at `http://localhost:8000/`
 

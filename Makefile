@@ -85,7 +85,7 @@ get-flags: check-target-dir
 	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
 # target for Containerfile
-build-prep: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
+build-prep: LLVM_TARGET = $(shell RUSTC_BOOTSTRAP=1 $(RUSTC_PRINT_TARGET_CMD) | $(JQ_TARGET_CMD))
 build-prep: build prep-version-file get-flags
 
 build-image-default: BASE_IMAGE = debian
@@ -137,7 +137,7 @@ image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 image: clean build-image-default verify-image push-image
 
 image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
-image-static: LLVM_TARGET = $(shell $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
+image-static: LLVM_TARGET = $(shell RUSTC_BOOTSTRAP=1 $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 image-static: clean build-static prep-version-file get-flags build-image-static verify-image push-image
 
 .PHONY: check check-required check-optional check-target-dir

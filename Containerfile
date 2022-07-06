@@ -1,8 +1,7 @@
 # rust builder
-FROM docker.io/library/rust:1.61 as builder
+FROM docker.io/library/rust:1.62 as builder
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update && apt-get -y -qq install jq
-RUN rustup toolchain install nightly --profile minimal && rustup default nightly
 WORKDIR /usr/local/src/flock
 COPY . /usr/local/src/flock
 RUN make build-prep

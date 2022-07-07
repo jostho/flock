@@ -142,9 +142,16 @@ image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
 image-static: LLVM_TARGET = $(shell RUSTC_BOOTSTRAP=1 $(RUSTC_PRINT_TARGET_CMD) --target $(TARGET_MUSL) | $(JQ_TARGET_CMD))
 image-static: clean build-static prep-version-file get-flags build-image-static verify-image push-image
 
+run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
+run-image: verify-image
+
+run-image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
+run-image-static: verify-image
+
 .PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
 .PHONY: build build-static build-prep
 .PHONY: build-image-default build-image-static
 .PHONY: verify-image push-image
 .PHONY: image image-static
+.PHONY: run-image run-image-static

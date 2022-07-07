@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  image-build:
+  image:
 
     runs-on: ubuntu-latest
 
@@ -34,7 +34,7 @@ jobs:
       - name: Build image
         run: make image
 
-  image-static-build:
+  image-static:
 
     runs-on: ubuntu-latest
 
@@ -58,3 +58,25 @@ jobs:
         run: buildah login -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
       - name: Build static image
         run: make image-static
+
+  run-image:
+
+    runs-on: ubuntu-latest
+    needs: image
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run image
+        run: make run-image
+
+  run-image-static:
+
+    runs-on: ubuntu-latest
+    needs: image-static
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run static image
+        run: make run-image-static

@@ -28,6 +28,7 @@ IMAGE_SHARE_PATH := /usr/local/share
 PORT := 8000
 
 LOCAL_META_VERSION_PATH := $(CURDIR)/target/meta.version
+RELEASE_URL := http://localhost:$(PORT)/release
 
 TARGET_MUSL := $(ARCH)-unknown-linux-musl
 
@@ -81,7 +82,7 @@ prep-version-file: check-target-dir
 	$(MAKE) -s check-required >> $(LOCAL_META_VERSION_PATH)
 
 get-flags: check-target-dir
-	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
+	test -f $(COUNTRY_FLAGS_LOCAL_ARCHIVE) || $(CURL) -sS -m 60 -L -o $(COUNTRY_FLAGS_LOCAL_ARCHIVE) $(COUNTRY_FLAGS_ARCHIVE_URL)
 	rm -rf $(COUNTRY_FLAGS_LOCAL_DIR) && $(UNZIP) -q $(COUNTRY_FLAGS_LOCAL_ARCHIVE) -d $(CURDIR)/target/
 
 # target for Containerfile
@@ -130,6 +131,12 @@ verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
+run-container: verify-image
+	$(PODMAN) run -d -p $(PORT):$(PORT) $(IMAGE_NAME)
+	sleep 10
+	$(CURL) -fsS -i -m 10 $(RELEASE_URL)
+	$(PODMAN) stop -l
+
 push-image:
 ifeq ($(CI), true)
 	$(BUILDAH) push $(IMAGE_NAME)
@@ -143,10 +150,10 @@ image-static: LLVM_TARGET = $(shell RUSTC_BOOTSTRAP=1 $(RUSTC_PRINT_TARGET_CMD) 
 image-static: clean build-static prep-version-file get-flags build-image-static verify-image push-image
 
 run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-run-image: verify-image
+run-image: run-container
 
 run-image-static: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME)-static:$(IMAGE_VERSION)
-run-image-static: verify-image
+run-image-static: run-container
 
 .PHONY: check check-required check-optional check-target-dir
 .PHONY: clean prep-version-file get-flags
@@ -154,4 +161,4 @@ run-image-static: verify-image
 .PHONY: build-image-default build-image-static
 .PHONY: verify-image push-image
 .PHONY: image image-static
-.PHONY: run-image run-image-static
+.PHONY: run-image run-image-static run-container

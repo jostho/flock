@@ -8,7 +8,6 @@ use std::env;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 
-const DEFAULT_PORT: u16 = 8000;
 const ENV_FLAG_DIR: &str = "FLOCK_FLAG_DIR";
 
 const ENV_TEMPLATE_DIR: &str = "FLOCK_TEMPLATE_DIR";
@@ -102,8 +101,8 @@ fn rocket(app_config: AppConfig) -> Rocket<Build> {
         .manage(app_config)
 }
 
-#[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
+#[rocket::launch]
+fn launch() -> Rocket<Build> {
     let args = Args::parse();
     let countries = flock::get_countries(&args.flag_dir);
 
@@ -120,8 +119,7 @@ async fn main() -> Result<(), rocket::Error> {
         countries,
     };
 
-    rocket(config).launch().await?;
-    Ok(())
+    rocket(config)
 }
 
 #[cfg(test)]
@@ -130,6 +128,7 @@ mod tests {
     use rocket::http::Status;
     use rocket::local::blocking::Client;
 
+    const DEFAULT_PORT: u16 = 8000;
     const COUNTRY_FLAGS_DIR: &str = "target/country-flags";
 
     #[test]

@@ -28,7 +28,6 @@ IMAGE_SHARE_PATH := /usr/local/share
 PORT := 8000
 
 LOCAL_META_VERSION_PATH := $(CURDIR)/target/meta.version
-RELEASE_URL := http://localhost:$(PORT)/release
 
 TARGET_MUSL := $(ARCH)-unknown-linux-musl
 
@@ -131,10 +130,11 @@ verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
 
+run-container: VERIFY_URL = http://localhost:$(PORT)/{healthcheck,release}
 run-container: verify-image
 	$(PODMAN) run -d -p $(PORT):$(PORT) $(IMAGE_NAME)
 	sleep 10
-	$(CURL) -fsS -i -m 10 $(RELEASE_URL)
+	$(CURL) -fsS -i -m 10 -w "\n--- %{url_effective} \n" $(VERIFY_URL)
 	$(PODMAN) stop -l
 
 push-image:

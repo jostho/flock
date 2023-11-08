@@ -1,5 +1,5 @@
 # rust builder
-FROM docker.io/library/rust:1.62 as builder
+FROM docker.io/library/rust:1.73 as builder
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update && apt-get -y -qq install jq
 WORKDIR /usr/local/src/flock
@@ -7,7 +7,7 @@ COPY . /usr/local/src/flock
 RUN make build-prep
 
 # debian
-FROM docker.io/library/debian:11
+FROM docker.io/library/debian:12
 COPY --from=builder /usr/local/src/flock/target/release/flock /usr/local/bin
 COPY --from=builder /usr/local/src/flock/target/meta.version /usr/local/etc/flock-release
 COPY --from=builder /usr/local/src/flock/target/country-flags-main /usr/local/share/country-flags

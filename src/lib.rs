@@ -27,7 +27,7 @@ pub struct Country {
     flag: String,
 }
 
-pub fn is_valid_flag_dir(val: &str) -> Result<(), String> {
+pub fn is_valid_flag_dir(val: &str) -> Result<String, String> {
     // check whether the directory is a copy of country-flags git repo
     let mut json_path_buf = PathBuf::from(&val);
     json_path_buf.push(COUNTRIES_JSON);
@@ -39,7 +39,7 @@ pub fn is_valid_flag_dir(val: &str) -> Result<(), String> {
     {
         let result = read_from_json_file(json_path_buf.as_path());
         if result.is_ok() {
-            Ok(())
+            Ok(val.to_string())
         } else {
             Err(format!(
                 "{} is not valid",
@@ -51,24 +51,24 @@ pub fn is_valid_flag_dir(val: &str) -> Result<(), String> {
     }
 }
 
-pub fn is_valid_template_dir(val: &str) -> Result<(), String> {
+pub fn is_valid_template_dir(val: &str) -> Result<String, String> {
     let mut hbs_path_buf = PathBuf::from(&val);
     hbs_path_buf.push(QUIZ_HBS);
     if Path::new(&val).is_dir() && hbs_path_buf.as_path().is_file() {
-        Ok(())
+        Ok(val.to_string())
     } else {
         Err(format!("{} is not valid", &val))
     }
 }
 
-pub fn is_valid_port(val: &str) -> Result<(), String> {
+pub fn is_valid_port(val: &str) -> Result<u16, String> {
     let port: u16 = match val.parse() {
         Ok(port) => port,
         Err(e) => return Err(e.to_string()),
     };
 
     if port < MAX_PORT {
-        Ok(())
+        Ok(port)
     } else {
         Err(format!("value should be less than {}", MAX_PORT))
     }
@@ -176,7 +176,7 @@ mod tests {
     fn is_valid_template_dir_for_templates() {
         let result = is_valid_template_dir("templates");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), ());
+        assert_eq!(result.unwrap(), "templates");
     }
 
     #[test]
@@ -190,7 +190,7 @@ mod tests {
     fn is_valid_port_for_8000() {
         let result = is_valid_port("8000");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), ());
+        assert_eq!(result.unwrap(), 8000);
     }
 
     #[test]

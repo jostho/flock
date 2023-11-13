@@ -18,22 +18,22 @@ const DEFAULT_RELEASE_FILE: &str = "/usr/local/etc/flock-release";
 
 /// Read cli args
 #[derive(Parser, Debug)]
-#[clap(version, about)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     /// Port number to use
-    #[clap(short, long, value_parser, default_value_t = 8000, validator = flock::is_valid_port)]
+    #[arg(short, long, value_parser = flock::is_valid_port, default_value_t = 8000)]
     port: u16,
 
     /// Bind on local interface
-    #[clap(short, long)]
+    #[arg(short, long)]
     local: bool,
 
     /// Flag dir
-    #[clap(short, long, value_parser, env = ENV_FLAG_DIR, validator = flock::is_valid_flag_dir)]
+    #[arg(short, long, value_parser = flock::is_valid_flag_dir, env = ENV_FLAG_DIR)]
     flag_dir: String,
 
     /// Template dir
-    #[clap(short, long, value_parser, env = ENV_TEMPLATE_DIR, default_value = DEFAULT_TEMPLATE_DIR, validator = flock::is_valid_template_dir)]
+    #[arg(short, long, value_parser = flock::is_valid_template_dir, env = ENV_TEMPLATE_DIR, default_value = DEFAULT_TEMPLATE_DIR)]
     template_dir: String,
 }
 

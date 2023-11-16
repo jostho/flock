@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine as _};
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::Serialize;
@@ -158,7 +159,7 @@ fn get_flag_base64_encoded(cca2: &str, flag_dir: &str) -> String {
     path_buf.push(cca2.to_ascii_lowercase());
     path_buf.set_extension(PNG_EXTENSION);
     let result = std::fs::read(path_buf.as_path());
-    base64::encode(result.unwrap())
+    general_purpose::STANDARD_NO_PAD.encode(result.unwrap())
 }
 
 #[cfg(test)]

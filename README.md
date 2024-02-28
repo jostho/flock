@@ -1,9 +1,9 @@
 # Flock
 
-![CI](https://github.com/jostho/flock/workflows/CI/badge.svg)
-![Image](https://github.com/jostho/flock/workflows/Image/badge.svg)
+![CI](https://github.com/jostho/flock/actions/workflows/ci.yml/badge.svg)
+![Image](https://github.com/jostho/flock/actions/workflows/image.yml/badge.svg)
 
-This is a flag quiz program written in rust using [rocket](https://github.com/SergioBenitez/Rocket).
+This is a flag quiz program written in rust using [rocket](https://github.com/rwf2/Rocket).
 
 ## Environment
 

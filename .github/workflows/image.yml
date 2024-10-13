@@ -12,7 +12,7 @@ env:
 jobs:
   image:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
@@ -32,7 +32,7 @@ jobs:
 
   image-static:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
 
   run-image:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: image
 
     steps:
@@ -65,7 +65,7 @@ jobs:
 
   run-image-static:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: image-static
 
     steps:
